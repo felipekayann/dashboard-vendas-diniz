@@ -269,7 +269,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 04/08/2026 às 16:11</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 04/08/2026 às 17:12</div>
     </div>
   </div>
 
@@ -307,23 +307,23 @@
     <div class="kpis">
       <div class="kpi">
         <div class="label">Total vendido no mês</div>
-        <div class="value">R$ 92.589,00</div>
+        <div class="value">R$ 95.489,00</div>
         <div class="foot">Todas as lojas somadas</div>
       </div>
       <div class="kpi">
         <div class="label">Média por dia útil (3/26)</div>
-        <div class="value gold">R$ 30.863,00</div>
+        <div class="value gold">R$ 31.829,67</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
         <div class="label">Projeção de fechamento</div>
-        <div class="value gold">R$ 802.438,00</div>
+        <div class="value gold">R$ 827.571,33</div>
         <div class="foot">Se o ritmo atual se mantiver nos 26 dias úteis</div>
       </div>
       <div class="kpi">
         <div class="label">Atendimentos no mês</div>
-        <div class="value">60</div>
-        <div class="foot">≈ 20 atendimentos por dia útil</div>
+        <div class="value">62</div>
+        <div class="foot">≈ 21 atendimentos por dia útil</div>
       </div>
       <div class="kpi">
         <div class="label">Devoluções no mês</div>
@@ -390,19 +390,19 @@ const DIAS_UTEIS_TOTAL = 26;      // total de dias úteis do mês — atualize a
 // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
 // usando o filtro de data "hoje" no painel Faturômetro.
 const TODAY = {
-  total: 14517.00,
-  atend: 14,
-  stores: {"Loja 01": 3867.00, "Loja 02": 1700.00, "Loja 03": 1300.00, "Loja 04": 580.00, "Loja 05": 3540.00, "Loja 06": 2000.00, "Loja 07": 1530.00},
+  total: 17417.00,
+  atend: 16,
+  stores: {"Loja 01": 3867.00, "Loja 02": 1700.00, "Loja 03": 1300.00, "Loja 04": 780.00, "Loja 05": 3540.00, "Loja 06": 2000.00, "Loja 07": 4230.00},
 };
 
 const stores = [
   {name:"Loja 01", total:12626.00, atend:14, meta:180000, devol:0},
   {name:"Loja 02", total:23541.00, atend:11, meta:140000, devol:0},
   {name:"Loja 03", total:13200.00, atend:8,  meta:150000, devol:0},
-  {name:"Loja 04", total:18905.00, atend:10, meta:150000, devol:0},
+  {name:"Loja 04", total:19105.00, atend:11, meta:150000, devol:0},
   {name:"Loja 05", total:9676.00,  atend:6,  meta:85000,  devol:0},
   {name:"Loja 06", total:10907.00, atend:9,  meta:85000,  devol:0},
-  {name:"Loja 07", total:3734.00,  atend:2,  meta:110000, devol:0},
+  {name:"Loja 07", total:6434.00,  atend:3,  meta:110000, devol:0},
 ].map(s => {
   const net = Math.round((s.total - s.devol) * 100) / 100;
   const superMeta = s.meta + 20000;
