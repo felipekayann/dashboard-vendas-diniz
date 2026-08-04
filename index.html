@@ -193,44 +193,6 @@
   .camp-net .val{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; color:var(--red);}
   .camp-net .val.na{color:var(--ink-soft); font-size:12.5px; font-weight:500;}
 
-  .toolbar{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
-  .search{
-    flex:1; min-width:200px;
-    display:flex; align-items:center; gap:8px;
-    background:var(--white); border:1px solid var(--line); border-radius:10px;
-    padding:9px 14px;
-  }
-  .search svg{flex-shrink:0; opacity:0.5;}
-  .search input{border:none; outline:none; font-family:'Inter',sans-serif; font-size:13.5px; width:100%; background:transparent; color:var(--ink);}
-  .search input::placeholder{color:var(--ink-soft);}
-  .hint{font-size:11.5px; color:var(--ink-soft);}
-
-  table{width:100%; border-collapse:collapse; background:var(--white); border-radius:14px; overflow:hidden; border:1px solid var(--line);}
-  thead th{
-    background:var(--beige);
-    color:var(--red-dark);
-    text-align:left;
-    font-size:11.5px;
-    text-transform:uppercase;
-    letter-spacing:.06em;
-    padding:12px 16px;
-    font-weight:700;
-    cursor:pointer;
-    user-select:none;
-    white-space:nowrap;
-  }
-  thead th:hover{background:#dcc7a8;}
-  thead th .arrow{display:inline-block; margin-left:4px; opacity:0.35; font-size:10px;}
-  thead th.active .arrow{opacity:1;}
-  thead th.num, td.num{text-align:right;}
-  tbody td{padding:11px 16px; font-size:13.5px; border-top:1px solid var(--line);}
-  tbody tr:nth-child(even){background:#fdfbf8;}
-  tbody tr:hover{background:var(--beige);}
-  td.name{font-weight:600;}
-  .bar-cell{display:flex; align-items:center; gap:8px;}
-  .bar-track{flex:1; height:6px; background:var(--line); border-radius:4px; overflow:hidden; min-width:60px;}
-  .bar-fill{height:100%; background:linear-gradient(90deg,var(--orange),var(--gold));}
-
   footer{margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
 
   #loginGate{
@@ -364,11 +326,6 @@
         <div class="foot">≈ 20 atendimentos por dia útil</div>
       </div>
       <div class="kpi">
-        <div class="label">Ticket médio geral</div>
-        <div class="value gold">R$ 1.641,72</div>
-        <div class="foot">Média entre todos os vendedores</div>
-      </div>
-      <div class="kpi">
         <div class="label">Devoluções no mês</div>
         <div class="value na" style="color:var(--ink-soft); font-size:14px;">Ainda não informado</div>
         <div class="foot">Me envie quando tiver, que eu já desconto</div>
@@ -386,31 +343,6 @@
         <div class="note">Total vendido, atendimentos, média diária e progresso de meta · super meta (+20k) · mega meta (+20k)</div>
       </div>
       <div class="stores" id="stores"></div>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <h2>Desempenho por vendedor</h2>
-        <div class="note" id="vendorCount">20 vendedores</div>
-      </div>
-      <div class="toolbar">
-        <div class="search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b5d54" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="vendorSearch" placeholder="Buscar vendedor pelo nome...">
-        </div>
-        <div class="hint">clique no título da coluna para ordenar</div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th data-key="name">Vendedor<span class="arrow">▲</span></th>
-            <th class="num" data-key="atend">Atendimentos<span class="arrow">▲</span></th>
-            <th class="num" data-key="ticket">Ticket médio<span class="arrow">▲</span></th>
-            <th class="num active" data-key="total">Total vendido<span class="arrow">▼</span></th>
-          </tr>
-        </thead>
-        <tbody id="vendors"></tbody>
-      </table>
     </section>
 
     <footer>
@@ -484,26 +416,6 @@ const stores = [
   const projection = Math.round(dailyRate * DIAS_UTEIS_TOTAL * 100) / 100;
   return {...s, net, superMeta, megaMeta, level, next, gap, dailyRate, projection};
 }).sort((a,b)=>b.net-a.net);
-
-const vendors = [
-  {name:"ALANDRA ANDRESSA DE SOUSA", atend:4, ticket:924.00},
-  {name:"ANA CAROLINA DE MACEDA OLIVEIRA", atend:3, ticket:1183.33},
-  {name:"ANDRESSA GABRIELLY GONÇALVES PEREIRA", atend:6, ticket:2537.67},
-  {name:"BRENDA CAROLINE FRUTTOS", atend:8, ticket:1350.88},
-  {name:"EMILI THAIS MOZ DOS SANTOS", atend:1, ticket:870.00},
-  {name:"GEANE SAMARA MESQUITA DA SILVA", atend:2, ticket:1745.00},
-  {name:"JESSICA CIZERZA", atend:4, ticket:2037.50},
-  {name:"JULIA MANOELA DOS SANTOS GOMES", atend:8, ticket:945.00},
-  {name:"KAMILA DE MELLO CACHUBOKSI", atend:2, ticket:1867.00},
-  {name:"KESHELY SABRINA MARTINS DA SILVA", atend:3, ticket:1608.33},
-  {name:"LARISSA KELY FERREIRA", atend:1, ticket:1500.00},
-  {name:"MARIA EDUARDA SIMON", atend:4, ticket:1106.25},
-  {name:"MYLENA CRISTINA DE OLIVEIRA TRINADADE", atend:2, ticket:1975.00},
-  {name:"ROSELI MEDEIROS GOULART", atend:3, ticket:1993.33},
-  {name:"ROSIANE ALVEZ DE ABREU", atend:3, ticket:1446.67},
-  {name:"THAMARA KAWANA SANTOS ALENCAR", atend:3, ticket:2833.33},
-  {name:"VENDEDOR PADRAO", atend:3, ticket:1986.00},
-].map(v => ({...v, total: Math.round(v.atend * v.ticket * 100) / 100}));
 
 const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const maxStoreTotal = Math.max(...stores.map(s=>s.total));
@@ -606,69 +518,6 @@ stores.forEach((s,i)=>{
   `;
   storesEl.appendChild(div);
 });
-
-const vendorsEl = document.getElementById('vendors');
-const vendorCountEl = document.getElementById('vendorCount');
-const maxAtend = Math.max(...vendors.map(v=>v.atend));
-let sortKey = 'total';
-let sortDir = -1; // -1 = desc, 1 = asc
-let searchTerm = '';
-
-function renderVendors(){
-  const filtered = vendors.filter(v => v.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  filtered.sort((a,b) => {
-    if(sortKey === 'name') return a.name.localeCompare(b.name) * sortDir;
-    return (a[sortKey] - b[sortKey]) * sortDir;
-  });
-
-  vendorCountEl.textContent = searchTerm
-    ? `${filtered.length} de ${vendors.length} vendedores`
-    : `${vendors.length} vendedores`;
-
-  vendorsEl.innerHTML = '';
-  filtered.forEach(v=>{
-    const tr = document.createElement('tr');
-    const barPct = (v.atend/maxAtend)*100;
-    tr.innerHTML = `
-      <td class="name">${v.name}</td>
-      <td class="num">
-        <div class="bar-cell" style="justify-content:flex-end;">
-          <div class="bar-track" style="max-width:80px;"><div class="bar-fill" style="width:${barPct}%"></div></div>
-          <span>${v.atend}</span>
-        </div>
-      </td>
-      <td class="num">${brl(v.ticket)}</td>
-      <td class="num" style="font-weight:700; color:var(--red);">${brl(v.total)}</td>
-    `;
-    vendorsEl.appendChild(tr);
-  });
-}
-
-document.querySelectorAll('thead th[data-key]').forEach(th=>{
-  th.addEventListener('click', ()=>{
-    const key = th.dataset.key;
-    if(sortKey === key){
-      sortDir *= -1;
-    } else {
-      sortKey = key;
-      sortDir = -1;
-    }
-    document.querySelectorAll('thead th[data-key]').forEach(t=>{
-      t.classList.remove('active');
-      t.querySelector('.arrow').textContent = '▲';
-    });
-    th.classList.add('active');
-    th.querySelector('.arrow').textContent = sortDir === 1 ? '▲' : '▼';
-    renderVendors();
-  });
-});
-
-document.getElementById('vendorSearch').addEventListener('input', (e)=>{
-  searchTerm = e.target.value;
-  renderVendors();
-});
-
-renderVendors();
 </script>
 
 </body>
