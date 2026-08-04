@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="900">
 <title>Faturômetro · Óticas Diniz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -433,6 +434,7 @@ function tryLogin(){
   const input = document.getElementById('pwInput');
   const err = document.getElementById('pwErr');
   if(input.value === DASHBOARD_PASSWORD){
+    sessionStorage.setItem('dinizAuth', '1');
     document.getElementById('loginGate').style.display = 'none';
     document.getElementById('dashboardContent').style.display = 'block';
   } else {
@@ -440,6 +442,13 @@ function tryLogin(){
     input.value = '';
     input.focus();
   }
+}
+
+// Se já autenticou nesta aba (sessionStorage), pula a tela de senha —
+// importante porque a página recarrega sozinha a cada 15 min (auto-refresh acima).
+if(sessionStorage.getItem('dinizAuth') === '1'){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'block';
 }
 </script>
 <script>
