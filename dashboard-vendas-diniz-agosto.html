@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faturômetro · Óticas Diniz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#C4161C;
+    --red-dark:#8f1015;
+    --white:#FFFFFF;
+    --beige:#E4D2BC;
+    --orange:#F58220;
+    --gold:#FDB913;
+    --ink:#2a1f1a;
+    --ink-soft:#6b5d54;
+    --line:#e8ddd1;
+    --bg:#faf6f0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:0 0 60px 0;
+  }
+  .top{
+    background:var(--red);
+    background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
+    color:var(--white);
+    padding:34px 6vw 40px 6vw;
+    position:relative;
+    overflow:hidden;
+  }
+  .top::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:260px; height:260px;
+    border:26px solid rgba(255,255,255,0.08);
+    border-radius:50%;
+  }
+  .top::before{
+    content:"";
+    position:absolute;
+    right:60px; top:40px;
+    width:120px; height:120px;
+    border:16px solid rgba(255,255,255,0.10);
+    border-radius:50%;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,44px);
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    margin-top:8px;
+    color:rgba(255,255,255,0.85);
+    font-size:15px;
+  }
+  .updated{
+    margin-top:22px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.25);
+    padding:7px 14px;
+    border-radius:100px;
+    font-size:13px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 6vw;}
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:16px;
+    margin-top:-38px;
+    position:relative;
+    z-index:2;
+  }
+  .kpi{
+    background:var(--white);
+    border-radius:16px;
+    padding:22px 22px;
+    box-shadow:0 12px 28px -14px rgba(196,22,28,0.25);
+    border:1px solid var(--line);
+  }
+  .kpi .label{font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
+  .kpi .value{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-top:8px; color:var(--red);}
+  .kpi .value.gold{color:#b5790f;}
+  .kpi .foot{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+  section{margin-top:52px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:8px;}
+  .section-head h2{font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:600;}
+  .section-head .note{font-size:12.5px; color:var(--ink-soft);}
+
+  .stores{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:14px;
+  }
+  .store-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .store-card .ring-wrap{display:flex; align-items:center; gap:14px;}
+  .ring{flex-shrink:0;}
+  .store-card .name{font-weight:700; font-size:14.5px; letter-spacing:.01em;}
+  .store-card .rank{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  .store-card .total{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin-top:14px; color:var(--ink);}
+  .store-card .row{display:flex; justify-content:space-between; margin-top:8px; font-size:12.5px; color:var(--ink-soft);}
+  .store-card .row b{color:var(--ink); font-weight:600;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; font-weight:700; letter-spacing:.02em;
+    padding:4px 10px; border-radius:100px; margin-top:12px;
+  }
+  .badge.mega{background:linear-gradient(90deg,var(--gold),var(--orange)); color:#4a2a00;}
+  .badge.super{background:var(--orange); color:#fff;}
+  .badge.meta{background:var(--beige); color:var(--red-dark);}
+  .badge.abaixo{background:#f4e3e3; color:var(--red);}
+
+  .meta-track{position:relative; height:10px; background:var(--line); border-radius:6px; margin-top:12px; overflow:visible;}
+  .meta-fill{position:absolute; left:0; top:0; height:100%; border-radius:6px; background:linear-gradient(90deg,var(--red) 0%, var(--orange) 60%, var(--gold) 100%);}
+  .meta-marker{position:absolute; top:-3px; width:2px; height:16px; background:var(--ink);}
+  .meta-marker::after{content:attr(data-label); position:absolute; top:18px; left:50%; transform:translateX(-50%); font-size:9.5px; color:var(--ink-soft); white-space:nowrap;}
+  .meta-gap{font-size:11.5px; color:var(--ink-soft); margin-top:22px;}
+  .meta-gap b{color:var(--ink);}
+
+  .select-wrap select:disabled{color:var(--ink-soft); cursor:not-allowed;}
+  .select-wrap{
+    position:relative;
+    background:var(--white); border:1px solid var(--line); border-radius:10px;
+  }
+  .select-wrap select{
+    appearance:none; -webkit-appearance:none;
+    border:none; outline:none; background:transparent;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; color:var(--ink);
+    padding:9px 34px 9px 14px; cursor:pointer;
+  }
+  .select-wrap::after{
+    content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    font-size:11px; color:var(--ink-soft); pointer-events:none;
+  }
+  .seg{display:flex; background:var(--beige); border-radius:10px; padding:3px; gap:2px;}
+  .seg button{
+    border:none; background:transparent; padding:7px 13px; border-radius:7px;
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; color:var(--red-dark);
+    cursor:pointer; transition:background .15s;
+  }
+  .seg button.active{background:var(--red); color:#fff;}
+
+  .camp-list{display:flex; flex-direction:column; gap:9px;}
+  .camp-row{
+    display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:12px;
+    background:var(--white); border:1px solid var(--line); border-radius:10px; padding:10px 14px;
+  }
+  .camp-row .pos{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; color:var(--ink-soft); text-align:center;}
+  .camp-row .info{min-width:0;}
+  .camp-row .cname{font-weight:600; font-size:13.5px;}
+  .camp-track{height:8px; background:var(--line); border-radius:5px; margin-top:6px; overflow:hidden;}
+  .camp-fill{height:100%; border-radius:5px; background:linear-gradient(90deg,var(--red),var(--orange));}
+  .camp-row .cval{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); white-space:nowrap;}
+  .camp-row .cpct{font-size:11px; color:var(--ink-soft); text-align:right; margin-top:2px;}
+
+  .camp-net{
+    display:flex; align-items:center; gap:10px;
+    background:var(--white); border:1px solid var(--line); border-radius:10px;
+    padding:9px 16px; margin-left:auto;
+  }
+  .camp-net .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600;}
+  .camp-net .val{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; color:var(--red);}
+  .camp-net .val.na{color:var(--ink-soft); font-size:12.5px; font-weight:500;}
+
+  .toolbar{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .search{
+    flex:1; min-width:200px;
+    display:flex; align-items:center; gap:8px;
+    background:var(--white); border:1px solid var(--line); border-radius:10px;
+    padding:9px 14px;
+  }
+  .search svg{flex-shrink:0; opacity:0.5;}
+  .search input{border:none; outline:none; font-family:'Inter',sans-serif; font-size:13.5px; width:100%; background:transparent; color:var(--ink);}
+  .search input::placeholder{color:var(--ink-soft);}
+  .hint{font-size:11.5px; color:var(--ink-soft);}
+
+  table{width:100%; border-collapse:collapse; background:var(--white); border-radius:14px; overflow:hidden; border:1px solid var(--line);}
+  thead th{
+    background:var(--beige);
+    color:var(--red-dark);
+    text-align:left;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    padding:12px 16px;
+    font-weight:700;
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+  }
+  thead th:hover{background:#dcc7a8;}
+  thead th .arrow{display:inline-block; margin-left:4px; opacity:0.35; font-size:10px;}
+  thead th.active .arrow{opacity:1;}
+  thead th.num, td.num{text-align:right;}
+  tbody td{padding:11px 16px; font-size:13.5px; border-top:1px solid var(--line);}
+  tbody tr:nth-child(even){background:#fdfbf8;}
+  tbody tr:hover{background:var(--beige);}
+  td.name{font-weight:600;}
+  .bar-cell{display:flex; align-items:center; gap:8px;}
+  .bar-track{flex:1; height:6px; background:var(--line); border-radius:4px; overflow:hidden; min-width:60px;}
+  .bar-fill{height:100%; background:linear-gradient(90deg,var(--orange),var(--gold));}
+
+  footer{margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  #loginGate{
+    position:fixed; inset:0; z-index:999;
+    background:var(--red);
+    background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .login-card{
+    background:var(--white);
+    border-radius:18px;
+    padding:38px 34px;
+    width:100%; max-width:340px;
+    text-align:center;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,0.4);
+  }
+  .login-card .lock{
+    width:52px; height:52px; border-radius:50%;
+    background:var(--beige); display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px auto; font-size:22px;
+  }
+  .login-card h2{font-family:'Space Grotesk',sans-serif; font-size:19px; margin-bottom:6px;}
+  .login-card p{font-size:13px; color:var(--ink-soft); margin-bottom:22px;}
+  .login-card input{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px;
+    font-family:'Inter',sans-serif; font-size:15px; text-align:center; letter-spacing:2px;
+    outline:none; margin-bottom:12px;
+  }
+  .login-card input:focus{border-color:var(--red);}
+  .login-card button{
+    width:100%; padding:12px 14px; border:none; border-radius:10px;
+    background:var(--red); color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+    cursor:pointer;
+  }
+  .login-card button:hover{background:var(--red-dark);}
+  .login-card .err{color:var(--red); font-size:12.5px; margin-top:10px; min-height:16px;}
+  #dashboardContent{display:none;}
+
+  .highlight-cards{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+    margin-top:-38px; position:relative; z-index:2; margin-bottom:16px;
+  }
+  @media (max-width:720px){ .highlight-cards{grid-template-columns:1fr;} }
+  .hl-card{
+    background:var(--white); border-radius:16px; padding:22px 24px;
+    box-shadow:0 12px 28px -14px rgba(196,22,28,0.25); border:1px solid var(--line);
+  }
+  .hl-card .hl-title{font-size:12px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--red-dark); margin-bottom:12px; display:flex; align-items:center; gap:6px;}
+  .hl-card .hl-main{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:14px;}
+  .hl-card .hl-value{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; color:var(--ink);}
+  .hl-card .hl-sub{font-size:12.5px; color:var(--ink-soft);}
+  .hl-store-list{display:flex; flex-direction:column; gap:6px;}
+  .hl-store-row{display:flex; justify-content:space-between; font-size:12.5px; padding:6px 10px; background:var(--bg); border-radius:8px;}
+  .hl-store-row b{color:var(--ink); font-weight:700;}
+</style>
+</head>
+<body>
+
+  <div id="loginGate">
+    <div class="login-card">
+      <div class="lock">🔒</div>
+      <h2>Faturômetro · Diniz</h2>
+      <p>Digite a senha para acessar o dashboard</p>
+      <input type="password" id="pwInput" placeholder="Senha" maxlength="20">
+      <button id="pwBtn">Entrar</button>
+      <div class="err" id="pwErr"></div>
+    </div>
+  </div>
+
+  <div id="dashboardContent">
+  <div class="top">
+    <div class="wrap" style="padding:0;">
+      <div class="eyebrow">Faturômetro · Rede Diniz</div>
+      <h1>Painel de Vendas</h1>
+      <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 04/08/2026 às 14:13</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="highlight-cards">
+      <div class="hl-card">
+        <div class="hl-title">📅 Vendas de hoje</div>
+        <div class="hl-main">
+          <div>
+            <div class="hl-value" id="todayTotal">–</div>
+            <div class="hl-sub">Total do dia · todas as lojas</div>
+          </div>
+          <div class="hl-sub" id="todayAtend">–</div>
+        </div>
+        <div class="hl-store-list" id="todayStoreList"></div>
+      </div>
+
+      <div class="hl-card">
+        <div class="hl-title">📊 Vendas do mês (acumulado)</div>
+        <div class="hl-main">
+          <div>
+            <div class="hl-value" id="monthTotal">–</div>
+            <div class="hl-sub" id="monthDaysLabel">Total do mês inteiro até agora</div>
+          </div>
+        </div>
+        <div class="hl-store-list" id="monthStoreList"></div>
+        <div class="hl-store-row" style="margin-top:8px; background:var(--beige);">
+          <span>Projeção de fechamento do mês</span>
+          <b id="monthProjection">–</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Total vendido no mês</div>
+        <div class="value">R$ 91.072,00</div>
+        <div class="foot">Todas as lojas somadas</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Média por dia útil (3/26)</div>
+        <div class="value gold">R$ 30.357,33</div>
+        <div class="foot">Ritmo médio dos dias úteis já passados</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Projeção de fechamento</div>
+        <div class="value gold">R$ 789.290,67</div>
+        <div class="foot">Se o ritmo atual se mantiver nos 26 dias úteis</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Atendimentos no mês</div>
+        <div class="value">57</div>
+        <div class="foot">≈ 19 atendimentos por dia útil</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Ticket médio geral</div>
+        <div class="value gold">R$ 1.658,24</div>
+        <div class="foot">Média entre todos os vendedores</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Devoluções no mês</div>
+        <div class="value na" style="color:var(--ink-soft); font-size:14px;">Ainda não informado</div>
+        <div class="foot">Me envie quando tiver, que eu já desconto</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Metas do mês (dia útil 1/26)</div>
+        <div class="value" id="metaSummaryValue">–</div>
+        <div class="foot" id="metaSummaryFoot">lojas bateram a meta mínima</div>
+      </div>
+    </div>
+
+    <section>
+      <div class="section-head">
+        <h2>Vendas por loja</h2>
+        <div class="note">Total vendido, atendimentos, média diária e progresso de meta · super meta (+20k) · mega meta (+20k)</div>
+      </div>
+      <div class="stores" id="stores"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Desempenho por vendedor</h2>
+        <div class="note" id="vendorCount">20 vendedores</div>
+      </div>
+      <div class="toolbar">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b5d54" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="vendorSearch" placeholder="Buscar vendedor pelo nome...">
+        </div>
+        <div class="hint">clique no título da coluna para ordenar</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th data-key="name">Vendedor<span class="arrow">▲</span></th>
+            <th class="num" data-key="atend">Atendimentos<span class="arrow">▲</span></th>
+            <th class="num" data-key="ticket">Ticket médio<span class="arrow">▲</span></th>
+            <th class="num active" data-key="total">Total vendido<span class="arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="vendors"></tbody>
+      </table>
+    </section>
+
+    <footer>
+      <span>Fonte: Dataweb BI (Faturômetro) — dados de cadastro sem considerar devoluções/sinais.</span>
+      <span>Óticas Diniz</span>
+    </footer>
+
+  </div>
+
+  </div>
+
+<script>
+const DASHBOARD_PASSWORD = "2008";
+
+document.getElementById('pwBtn').addEventListener('click', tryLogin);
+document.getElementById('pwInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') tryLogin();
+});
+
+function tryLogin(){
+  const input = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if(input.value === DASHBOARD_PASSWORD){
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('dashboardContent').style.display = 'block';
+  } else {
+    err.textContent = 'Senha incorreta, tente de novo.';
+    input.value = '';
+    input.focus();
+  }
+}
+</script>
+<script>
+const DIAS_UTEIS_DECORRIDOS = 3;  // dias úteis já passados no mês (não conta domingo)
+const DIAS_UTEIS_TOTAL = 26;      // total de dias úteis do mês — atualize aqui a cada consulta
+
+// Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
+// usando o filtro de data "hoje" no painel Faturômetro.
+const TODAY = {
+  total: 13000.00,
+  atend: 11,
+  stores: {"Loja 01": 2450.00, "Loja 02": 1700.00, "Loja 03": 1300.00, "Loja 04": 580.00, "Loja 05": 3540.00, "Loja 06": 1900.00, "Loja 07": 1530.00},
+};
+
+const stores = [
+  {name:"Loja 01", total:11209.00, atend:12, meta:180000, devol:0},
+  {name:"Loja 02", total:23541.00, atend:11, meta:140000, devol:0},
+  {name:"Loja 03", total:13200.00, atend:8,  meta:150000, devol:0},
+  {name:"Loja 04", total:18905.00, atend:10, meta:150000, devol:0},
+  {name:"Loja 05", total:9676.00,  atend:6,  meta:85000,  devol:0},
+  {name:"Loja 06", total:10807.00, atend:8,  meta:85000,  devol:0},
+  {name:"Loja 07", total:3734.00,  atend:2,  meta:110000, devol:0},
+].map(s => {
+  const net = Math.round((s.total - s.devol) * 100) / 100;
+  const superMeta = s.meta + 20000;
+  const megaMeta = s.meta + 40000;
+  let level, next, gap;
+  if(net >= megaMeta){ level='mega'; next=null; gap=0; }
+  else if(net >= superMeta){ level='super'; next='mega'; gap=megaMeta-net; }
+  else if(net >= s.meta){ level='meta'; next='super'; gap=superMeta-net; }
+  else{ level='abaixo'; next='meta'; gap=s.meta-net; }
+  const dailyRate = net/DIAS_UTEIS_DECORRIDOS;
+  const projection = Math.round(dailyRate * DIAS_UTEIS_TOTAL * 100) / 100;
+  return {...s, net, superMeta, megaMeta, level, next, gap, dailyRate, projection};
+}).sort((a,b)=>b.net-a.net);
+
+const vendors = [
+  {name:"ALANDRA ANDRESSA DE SOUSA", atend:3, ticket:989.67},
+  {name:"ANA CAROLINA DE MACEDA OLIVEIRA", atend:3, ticket:1183.33},
+  {name:"ANDRESSA GABRIELLY GONÇALVES PEREIRA", atend:6, ticket:2537.67},
+  {name:"BRENDA CAROLINE FRUTTOS", atend:7, ticket:1529.57},
+  {name:"EMILI THAIS MOZ DOS SANTOS", atend:1, ticket:870.00},
+  {name:"GEANE SAMARA MESQUITA DA SILVA", atend:2, ticket:1745.00},
+  {name:"JESSICA CIZERZA", atend:4, ticket:2037.50},
+  {name:"JULIA MANOELA DOS SANTOS GOMES", atend:7, ticket:981.43},
+  {name:"KAMILA DE MELLO CACHUBOKSI", atend:2, ticket:1867.00},
+  {name:"KESHELY SABRINA MARTINS DA SILVA", atend:3, ticket:1608.33},
+  {name:"LARISSA KELY FERREIRA", atend:1, ticket:1500.00},
+  {name:"MARIA EDUARDA SIMON", atend:4, ticket:1106.25},
+  {name:"MYLENA CRISTINA DE OLIVEIRA TRINADADE", atend:2, ticket:1975.00},
+  {name:"ROSELI MEDEIROS GOULART", atend:3, ticket:1993.33},
+  {name:"ROSIANE ALVEZ DE ABREU", atend:3, ticket:1446.67},
+  {name:"THAMARA KAWANA SANTOS ALENCAR", atend:3, ticket:2833.33},
+  {name:"VENDEDOR PADRAO", atend:3, ticket:1986.00},
+].map(v => ({...v, total: Math.round(v.atend * v.ticket * 100) / 100}));
+
+const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const maxStoreTotal = Math.max(...stores.map(s=>s.total));
+
+function ringSVG(pct, colorA, colorB){
+  const r = 26, c = 2*Math.PI*r;
+  const offset = c - (pct/100)*c;
+  return `<svg class="ring" width="64" height="64" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="#eee2d3" stroke-width="7"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="url(#g)" stroke-width="7"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"
+      transform="rotate(-90 32 32)"/>
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${colorA}"/><stop offset="100%" stop-color="${colorB}"/>
+    </linearGradient></defs>
+    <text x="32" y="37" text-anchor="middle" font-size="13" font-weight="700" fill="#2a1f1a" font-family="Space Grotesk">${Math.round(pct)}%</text>
+  </svg>`;
+}
+
+const storesEl = document.getElementById('stores');
+
+// ---- Card: Vendas de hoje ----
+if(TODAY.total === null){
+  document.getElementById('todayTotal').textContent = 'Aguardando 1ª atualização';
+  document.getElementById('todayTotal').style.fontSize = '15px';
+  document.getElementById('todayTotal').style.color = 'var(--ink-soft)';
+  document.getElementById('todayAtend').textContent = '';
+  document.getElementById('todayStoreList').innerHTML = '<div class="hl-store-row" style="color:var(--ink-soft);">O card de hoje é preenchido automaticamente a cada execução agendada (a cada hora, 9h–19h).</div>';
+} else {
+  document.getElementById('todayTotal').textContent = brl(TODAY.total);
+  document.getElementById('todayAtend').textContent = `${TODAY.atend} atendimentos hoje`;
+  const listEl = document.getElementById('todayStoreList');
+  listEl.innerHTML = '';
+  Object.entries(TODAY.stores).forEach(([name,val])=>{
+    const row = document.createElement('div');
+    row.className = 'hl-store-row';
+    row.innerHTML = `<span>DINIZ · ${name}</span><b>${brl(val)}</b>`;
+    listEl.appendChild(row);
+  });
+}
+
+// ---- Card: Vendas do mês (acumulado + projeção) ----
+const monthTotalAll = stores.reduce((sum,s)=>sum+s.net, 0);
+const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
+document.getElementById('monthTotal').textContent = brl(monthTotalAll);
+document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
+document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
+const monthListEl = document.getElementById('monthStoreList');
+monthListEl.innerHTML = '';
+stores.forEach(s=>{
+  const row = document.createElement('div');
+  row.className = 'hl-store-row';
+  row.innerHTML = `<span>DINIZ · ${s.name}</span><b>${brl(s.net)}</b>`;
+  monthListEl.appendChild(row);
+});
+
+const bateram = stores.filter(s => s.level !== 'abaixo').length;
+document.getElementById('metaSummaryValue').textContent = `${bateram} de ${stores.length}`;
+const megaCount = stores.filter(s=>s.level==='mega').length;
+const superCount = stores.filter(s=>s.level==='super').length;
+document.getElementById('metaSummaryFoot').textContent = `${megaCount} mega · ${superCount} super · resto na meta`;
+
+const levelLabel = {mega:'🏆 Mega meta', super:'⭐ Super meta', meta:'✔ Meta batida', abaixo:'Abaixo da meta'};
+const nextLabel = {meta:'meta', super:'super meta', mega:'mega meta'};
+
+stores.forEach((s,i)=>{
+  const pct = Math.min(100, (s.net/s.megaMeta)*100);
+  const ticketMedio = s.atend > 0 ? brl(s.total/s.atend) : '–';
+  const metaPct = Math.min(100, (s.meta/s.megaMeta)*100);
+  const superPct = Math.min(100, (s.superMeta/s.megaMeta)*100);
+  const projStatus = s.projection >= s.megaMeta ? '🏆 no ritmo da mega meta'
+    : s.projection >= s.superMeta ? '⭐ no ritmo da super meta'
+    : s.projection >= s.meta ? '✔ no ritmo de bater a meta'
+    : '⚠ no ritmo abaixo da meta';
+  const projColor = s.projection >= s.meta ? 'var(--ink)' : 'var(--red)';
+  const div = document.createElement('div');
+  div.className = 'store-card';
+  div.innerHTML = `
+    <div class="ring-wrap">
+      ${ringSVG(pct, '#F58220', '#C4161C')}
+      <div>
+        <div class="name">DINIZ · ${s.name}</div>
+        <div class="rank">#${i+1} em vendas no mês (líquido)</div>
+      </div>
+    </div>
+    <div class="total">${brl(s.net)}</div>
+    <div class="row"><span>Atendimentos</span><b>${s.atend}</b></div>
+    <div class="row"><span>Ticket médio</span><b>${ticketMedio}</b></div>
+    <div class="row"><span>Média por dia útil (${DIAS_UTEIS_DECORRIDOS}/${DIAS_UTEIS_TOTAL})</span><b>${brl(s.dailyRate)}</b></div>
+    <div class="row"><span>Projeção de fechamento</span><b style="color:${projColor};">${brl(s.projection)}</b></div>
+    <div class="row" style="font-size:11px; color:var(--ink-soft); justify-content:flex-start; gap:6px;">${projStatus}</div>
+    <div class="row"><span>Meta / Super / Mega</span><b>${brl(s.meta)} · ${brl(s.superMeta)} · ${brl(s.megaMeta)}</b></div>
+    <div class="meta-track">
+      <div class="meta-fill" style="width:${pct}%"></div>
+      <div class="meta-marker" style="left:${metaPct}%" data-label="meta"></div>
+      <div class="meta-marker" style="left:${superPct}%" data-label="super"></div>
+    </div>
+    <span class="badge ${s.level}">${levelLabel[s.level]}</span>
+    <div class="meta-gap">${s.next ? `Faltam <b>${brl(s.gap)}</b> para a ${nextLabel[s.next]}` : 'Todas as metas do mês superadas'}</div>
+  `;
+  storesEl.appendChild(div);
+});
+
+const vendorsEl = document.getElementById('vendors');
+const vendorCountEl = document.getElementById('vendorCount');
+const maxAtend = Math.max(...vendors.map(v=>v.atend));
+let sortKey = 'total';
+let sortDir = -1; // -1 = desc, 1 = asc
+let searchTerm = '';
+
+function renderVendors(){
+  const filtered = vendors.filter(v => v.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  filtered.sort((a,b) => {
+    if(sortKey === 'name') return a.name.localeCompare(b.name) * sortDir;
+    return (a[sortKey] - b[sortKey]) * sortDir;
+  });
+
+  vendorCountEl.textContent = searchTerm
+    ? `${filtered.length} de ${vendors.length} vendedores`
+    : `${vendors.length} vendedores`;
+
+  vendorsEl.innerHTML = '';
+  filtered.forEach(v=>{
+    const tr = document.createElement('tr');
+    const barPct = (v.atend/maxAtend)*100;
+    tr.innerHTML = `
+      <td class="name">${v.name}</td>
+      <td class="num">
+        <div class="bar-cell" style="justify-content:flex-end;">
+          <div class="bar-track" style="max-width:80px;"><div class="bar-fill" style="width:${barPct}%"></div></div>
+          <span>${v.atend}</span>
+        </div>
+      </td>
+      <td class="num">${brl(v.ticket)}</td>
+      <td class="num" style="font-weight:700; color:var(--red);">${brl(v.total)}</td>
+    `;
+    vendorsEl.appendChild(tr);
+  });
+}
+
+document.querySelectorAll('thead th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortKey === key){
+      sortDir *= -1;
+    } else {
+      sortKey = key;
+      sortDir = -1;
+    }
+    document.querySelectorAll('thead th[data-key]').forEach(t=>{
+      t.classList.remove('active');
+      t.querySelector('.arrow').textContent = '▲';
+    });
+    th.classList.add('active');
+    th.querySelector('.arrow').textContent = sortDir === 1 ? '▲' : '▼';
+    renderVendors();
+  });
+});
+
+document.getElementById('vendorSearch').addEventListener('input', (e)=>{
+  searchTerm = e.target.value;
+  renderVendors();
+});
+
+renderVendors();
+</script>
+
+</body>
+</html>
