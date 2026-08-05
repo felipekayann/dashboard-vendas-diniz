@@ -1,359 +1,387 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="900">
-    <title>Faturômetro · Óticas Diniz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-      :root{
-            --red:#C4161C;
-            --red-dark:#8f1015;
-            --white:#FFFFFF;
-            --beige:#E4D2BC;
-            --orange:#F58220;
-            --gold:#FDB913;
-            --ink:#2a1f1a;
-            --ink-soft:#6b5d54;
-            --line:#e8ddd1;
-            --bg:#faf6f0;
-      }
-      *{box-sizing:border-box; margin:0; padding:0;}
-      body{
-            background:var(--bg);
-            font-family:'Inter',sans-serif;
-            color:var(--ink);
-            padding:0 0 60px 0;
-      }
-      .top{
-            background:var(--red);
-            background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
-            color:var(--white);
-            padding:34px 6vw 40px 6vw;
-            position:relative;
-            overflow:hidden;
-      }
-      .top::after{
-            content:"";
-            position:absolute;
-            right:-60px; top:-60px;
-            width:260px; height:260px;
-            border:26px solid rgba(255,255,255,0.08);
-            border-radius:50%;
-      }
-      .top::before{
-            content:"";
-            position:absolute;
-            right:60px; top:40px;
-            width:120px; height:120px;
-            border:16px solid rgba(255,255,255,0.10);
-            border-radius:50%;
-      }
-      .eyebrow{
-            font-size:12px;
-            letter-spacing:0.16em;
-            text-transform:uppercase;
-            color:var(--gold);
-            font-weight:600;
-            margin-bottom:10px;
-      }
-      h1{
-            font-family:'Space Grotesk',sans-serif;
-            font-weight:700;
-            font-size:clamp(28px,4vw,44px);
-            letter-spacing:-0.01em;
-      }
-      .sub{
-            margin-top:8px;
-            color:rgba(255,255,255,0.85);
-            font-size:15px;
-      }
-          .updated{
-                margin-top:22px;
-                display:inline-flex;
-                align-items:center;
-                gap:8px;
-                background:rgba(255,255,255,0.12);
-                border:1px solid rgba(255,255,255,0.25);
-                padding:7px 14px;
-                border-radius:100px;
-                font-size:13px;
-          }
-      .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);}
-      .wrap{max-width:1180px; margin:0 auto; padding:0 6vw;}
-      .kpis{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-            gap:16px;
-            margin-top:-38px;
-            position:relative;
-            z-index:2;
-      }
-      .kpi{
-            background:var(--white);
-            border-radius:16px;
-            padding:22px 22px;
-            box-shadow:0 12px 28px -14px rgba(196,22,28,0.25);
-            border:1px solid var(--line);
-      }
-      .kpi .label{font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
-      .kpi .value{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-top:8px; color:var(--red);}
-      .kpi .value.gold{color:#b5790f;}
-      .kpi .foot{font-size:12px; color:var(--ink-soft); margin-top:4px;}
-      footer{margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
-      #loginGate{
-            position:fixed; inset:0; z-index:999;
-            background:var(--red);
-            background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
-            display:flex; align-items:center; justify-content:center;
-            padding:20px;
-      }
-      .login-card{
-            background:var(--white);
-            border-radius:18px;
-            padding:38px 34px;
-            width:100%; max-width:340px;
-            text-align:center;
-            box-shadow:0 24px 60px -20px rgba(0,0,0,0.4);
-      }
-      .login-card .lock{
-            width:52px; height:52px; border-radius:50%;
-            background:var(--beige); display:flex; align-items:center; justify-content:center;
-            margin:0 auto 16px auto; font-size:22px;
-      }
-      .login-card h2{font-family:'Space Grotesk',sans-serif; font-size:19px; margin-bottom:6px;}
-      .login-card p{font-size:13px; color:var(--ink-soft); margin-bottom:22px;}
-      .login-card input{
-            width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px;
-            font-family:'Inter',sans-serif; font-size:15px; text-align:center; letter-spacing:2px;
-            outline:none; margin-bottom:12px;
-      }
-      .login-card input:focus{border-color:var(--red);}
-      .login-card button{
-            width:100%; padding:12px 14px; border:none; border-radius:10px;
-            background:var(--red); color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
-            cursor:pointer;
-      }
-      .login-card button:hover{background:var(--red-dark);}
-      .login-card .err{color:var(--red); font-size:12.5px; margin-top:10px; min-height:16px;}
-      #dashboardContent{display:none;}
-      .highlight-cards{
-            display:grid; grid-template-columns:1fr 1fr; gap:16px;
-            margin-top:-38px; position:relative; z-index:2; margin-bottom:16px;
-      }
-      @media (max-width:720px){ .highlight-cards{grid-template-columns:1fr;} }
-      .hl-card{
-            background:var(--white); border-radius:16px; padding:22px 24px;
-            box-shadow:0 12px 28px -14px rgba(196,22,28,0.25); border:1px solid var(--line);
-      }
-      .hl-card .hl-title{font-size:12px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--red-dark); margin-bottom:12px; display:flex; align-items:center; gap:6px;}
-      .hl-card .hl-main{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:14px;}
-      .hl-card .hl-value{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; color:var(--ink);}
-      .hl-card .hl-sub{font-size:12.5px; color:var(--ink-soft);}
-      .hl-store-list{display:flex; flex-direction:column; gap:8px;}
-      .hl-store-row{display:flex; justify-content:space-between; font-size:12.5px; padding:6px 10px; background:var(--bg); border-radius:8px;}
-      .hl-store-row b{color:var(--ink); font-weight:700;}
-      .store-line{padding:9px 10px; background:var(--bg); border-radius:8px;}
-      .store-line-top{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;}
-      .store-line-top b{color:var(--ink); font-weight:700;}
-      .progress-track{height:7px; background:var(--line); border-radius:5px; overflow:hidden;}
-      .progress-fill{height:100%; border-radius:5px; background:linear-gradient(90deg,var(--red),var(--orange));}
-      .progress-label{font-size:11px; color:var(--ink-soft); margin-top:4px; text-align:right;}
-    </style>
-  </head>
-  <body>
-      <div id="loginGate">
-            <div class="login-card">
-                    <div class="lock">🔒</div>div>
-                    <h2>Faturômetro · Diniz</h2>
-                  <p>Digite a senha para acessar o dashboard</p>
-                  <input type="password" id="pwInput" placeholder="Senha" maxlength="20">
-                  <button id="pwBtn">Entrar</button>button>
-                  <div class="err" id="pwErr"></div>div>
-            </div>div>
-      </div>div>
-    <div id="dashboardContent">
-      <div class="top">
-          <div class="wrap" style="padding:0;">
-                <div class="eyebrow">Faturômetro · Rede Diniz</div>div>
-                <h1>Painel de Vendas</h1>
-                <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>div>
-                <div class="updated"><span class="dot"></span>span> Atualizado em 05/08/2026 às 16:35</div>div>
-          </div>div>
-      </div>div>
-      <div class="wrap">
-          <div class="highlight-cards">
-                <div class="hl-card">
-                        <div class="hl-title">📅 Vendas de hoje</div>div>
-                        <div class="hl-main">
-                                  <div>
-                                                <div class="hl-value" id="todayTotal">–</div>
-                                                <div class="hl-sub">Total do dia · todas as lojas</div>
-                                  </div>
-                                    <div class="hl-sub" id="todayAtend">–</div>
-                        </div>
-                          <div class="hl-store-list" id="todayStoreList"></div>
-                </div>
-                  <div class="hl-card">
-                            <div class="hl-title">📊 Vendas do mês (acumulado)</div>
-                            <div class="hl-main">
-                                        <div>
-                                                      <div class="hl-value" id="monthTotal">–</div>
-                                                      <div class="hl-sub" id="monthDaysLabel">Total do mês inteiro até agora</div>
-                                        </div>
-                            </div>
-                            <div class="hl-store-list" id="monthStoreList"></div>
-                            <div class="hl-store-row" style="margin-top:8px; background:var(--beige);">
-                                        <span>Projeção de fechamento do mês</span>
-                                      <b id="monthProjection">–</b>b>
-                            </div>
-                  </div>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="900">
+<title>Faturômetro · Óticas Diniz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#C4161C;
+    --red-dark:#8f1015;
+    --white:#FFFFFF;
+    --beige:#E4D2BC;
+    --orange:#F58220;
+    --gold:#FDB913;
+    --ink:#2a1f1a;
+    --ink-soft:#6b5d54;
+    --line:#e8ddd1;
+    --bg:#faf6f0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:0 0 60px 0;
+  }
+  .top{
+    background:var(--red);
+    background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
+    color:var(--white);
+    padding:34px 6vw 40px 6vw;
+    position:relative;
+    overflow:hidden;
+  }
+  .top::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:260px; height:260px;
+    border:26px solid rgba(255,255,255,0.08);
+    border-radius:50%;
+  }
+  .top::before{
+    content:"";
+    position:absolute;
+    right:60px; top:40px;
+    width:120px; height:120px;
+    border:16px solid rgba(255,255,255,0.10);
+    border-radius:50%;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,44px);
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    margin-top:8px;
+    color:rgba(255,255,255,0.85);
+    font-size:15px;
+  }
+  .updated{
+    margin-top:22px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.25);
+    padding:7px 14px;
+    border-radius:100px;
+    font-size:13px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 6vw;}
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:16px;
+    margin-top:-38px;
+    position:relative;
+    z-index:2;
+  }
+  .kpi{
+    background:var(--white);
+    border-radius:16px;
+    padding:22px 22px;
+    box-shadow:0 12px 28px -14px rgba(196,22,28,0.25);
+    border:1px solid var(--line);
+  }
+  .kpi .label{font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
+  .kpi .value{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-top:8px; color:var(--red);}
+  .kpi .value.gold{color:#b5790f;}
+  .kpi .foot{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+  footer{margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  #loginGate{
+    position:fixed; inset:0; z-index:999;
+    background:var(--red);
+    background-image: radial-gradient(circle at 85% -20%, var(--red-dark) 0%, var(--red) 55%);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .login-card{
+    background:var(--white);
+    border-radius:18px;
+    padding:38px 34px;
+    width:100%; max-width:340px;
+    text-align:center;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,0.4);
+  }
+  .login-card .lock{
+    width:52px; height:52px; border-radius:50%;
+    background:var(--beige); display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px auto; font-size:22px;
+  }
+  .login-card h2{font-family:'Space Grotesk',sans-serif; font-size:19px; margin-bottom:6px;}
+  .login-card p{font-size:13px; color:var(--ink-soft); margin-bottom:22px;}
+  .login-card input{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px;
+    font-family:'Inter',sans-serif; font-size:15px; text-align:center; letter-spacing:2px;
+    outline:none; margin-bottom:12px;
+  }
+  .login-card input:focus{border-color:var(--red);}
+  .login-card button{
+    width:100%; padding:12px 14px; border:none; border-radius:10px;
+    background:var(--red); color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+    cursor:pointer;
+  }
+  .login-card button:hover{background:var(--red-dark);}
+  .login-card .err{color:var(--red); font-size:12.5px; margin-top:10px; min-height:16px;}
+  #dashboardContent{display:none;}
+
+  .highlight-cards{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+    margin-top:-38px; position:relative; z-index:2; margin-bottom:16px;
+  }
+  @media (max-width:720px){ .highlight-cards{grid-template-columns:1fr;} }
+  .hl-card{
+    background:var(--white); border-radius:16px; padding:22px 24px;
+    box-shadow:0 12px 28px -14px rgba(196,22,28,0.25); border:1px solid var(--line);
+  }
+  .hl-card .hl-title{font-size:12px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--red-dark); margin-bottom:12px; display:flex; align-items:center; gap:6px;}
+  .hl-card .hl-main{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:14px;}
+  .hl-card .hl-value{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; color:var(--ink);}
+  .hl-card .hl-sub{font-size:12.5px; color:var(--ink-soft);}
+  .hl-store-list{display:flex; flex-direction:column; gap:8px;}
+  .hl-store-row{display:flex; justify-content:space-between; font-size:12.5px; padding:6px 10px; background:var(--bg); border-radius:8px;}
+  .hl-store-row b{color:var(--ink); font-weight:700;}
+
+  .store-line{padding:9px 10px; background:var(--bg); border-radius:8px;}
+  .store-line-top{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;}
+  .store-line-top b{color:var(--ink); font-weight:700;}
+  .progress-track{height:7px; background:var(--line); border-radius:5px; overflow:hidden;}
+  .progress-fill{height:100%; border-radius:5px; background:linear-gradient(90deg,var(--red),var(--orange));}
+  .progress-label{font-size:11px; color:var(--ink-soft); margin-top:4px; text-align:right;}
+</style>
+</head>
+<body>
+
+  <div id="loginGate">
+    <div class="login-card">
+      <div class="lock">🔒</div>
+      <h2>Faturômetro · Diniz</h2>
+      <p>Digite a senha para acessar o dashboard</p>
+      <input type="password" id="pwInput" placeholder="Senha" maxlength="20">
+      <button id="pwBtn">Entrar</button>
+      <div class="err" id="pwErr"></div>
+    </div>
+  </div>
+
+  <div id="dashboardContent">
+  <div class="top">
+    <div class="wrap" style="padding:0;">
+      <div class="eyebrow">Faturômetro · Rede Diniz</div>
+      <h1>Painel de Vendas</h1>
+      <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 05/08/2026 às 16:35</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="highlight-cards">
+      <div class="hl-card">
+        <div class="hl-title">📅 Vendas de hoje</div>
+        <div class="hl-main">
+          <div>
+            <div class="hl-value" id="todayTotal">–</div>
+            <div class="hl-sub">Total do dia · todas as lojas</div>
           </div>
-          <div class="kpis">
-                <div class="kpi">
-                        <div class="label">Média por dia útil (4/26)</div>
-                        <div class="value gold">R$ 29.666,00</div>
-                        <div class="foot">Ritmo médio dos dias úteis já passados</div>
-                </div>
-                <div class="kpi">
-                        <div class="label">Devoluções no mês</div>
-                        <div class="value na" style="color:var(--ink-soft); font-size:14px;">Ainda não informado</div>
-                        <div class="foot">Me envie quando tiver, que eu já desconto</div>
-                </div>
+          <div class="hl-sub" id="todayAtend">–</div>
+        </div>
+        <div class="hl-store-list" id="todayStoreList"></div>
+      </div>
+
+      <div class="hl-card">
+        <div class="hl-title">📊 Vendas do mês (acumulado)</div>
+        <div class="hl-main">
+          <div>
+            <div class="hl-value" id="monthTotal">–</div>
+            <div class="hl-sub" id="monthDaysLabel">Total do mês inteiro até agora</div>
           </div>
-          <footer>
-                  <span>Fonte: Dataweb BI (Faturômetro) — dados de cadastro sem considerar devoluções/sinais.</span>span>
-                  <span>Óticas Diniz</span>span>
-          </footer>
+        </div>
+        <div class="hl-store-list" id="monthStoreList"></div>
+        <div class="hl-store-row" style="margin-top:8px; background:var(--beige);">
+          <span>Projeção de fechamento do mês</span>
+          <b id="monthProjection">–</b>
+        </div>
       </div>
     </div>
-    <script>
-      const DASHBOARD_PASSWORD = "2008";
-      document.getElementById('pwBtn').addEventListener('click', tryLogin);
-      document.getElementById('pwInput').addEventListener('keydown', (e)=>{
-          if(e.key === 'Enter') tryLogin();
-      });
-      function tryLogin(){
-          const input = document.getElementById('pwInput');
-          const err = document.getElementById('pwErr');
-          if(input.value === DASHBOARD_PASSWORD){
-                sessionStorage.setItem('dinizAuth', '1');
-                document.getElementById('loginGate').style.display = 'none';
-                document.getElementById('dashboardContent').style.display = 'block';
-          } else {
-                err.textContent = 'Senha incorreta, tente de novo.';
-                input.value = '';
-                input.focus();
-          }
-      }
-      // Se já autenticou nesta aba (sessionStorage), pula a tela de senha —
-      // importante porque a página recarrega sozinha a cada 15 min (auto-refresh acima).
-      if(sessionStorage.getItem('dinizAuth') === '1'){
-          document.getElementById('loginGate').style.display = 'none';
-          document.getElementById('dashboardContent').style.display = 'block';
-      }
-        </script>
-    <script>
-      const DIAS_UTEIS_DECORRIDOS = 4;  // dias úteis já passados no mês (não conta domingo)
-      const DIAS_UTEIS_TOTAL = 26;      // total de dias úteis do mês — atualize aqui a cada consulta
-      // Saldo do mês já FECHADO até o dia anterior (por loja) — recalculado só na 1ª execução
-      // de cada dia (consultando o BI com filtro dia 1 até ontem). Nas demais execuções do
-      // mesmo dia isso permanece igual, e só o TODAY abaixo muda.
-      const MONTH_BASE_DATE = "2026-08-04"; // até este dia (inclusive) o saldo abaixo já está fechado
-      const MONTH_BASE = {
-          "Loja 01": {total: 12626.00, atend: 14},
-          "Loja 02": {total: 23541.00, atend: 11},
-          "Loja 03": {total: 13200.00, atend: 8},
-          "Loja 04": {total: 19105.00, atend: 11},
-          "Loja 05": {total: 9676.00,  atend: 6},
-          "Loja 06": {total: 14725.00, atend: 12},
-          "Loja 07": {total: 6434.00,  atend: 3},
-      };
-      // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
-      // usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
-      const TODAY = {
-          total: 19357.00,
-          atend: 15,
-          stores: {
-                "Loja 01": {total: 3200.00, atend: 1},
-                "Loja 02": {total: 4564.00, atend: 4},
-                "Loja 03": {total: 4923.00, atend: 4},
-                "Loja 04": {total: 5150.00, atend: 3},
-                "Loja 05": {total: 0.00,    atend: 0},
-                "Loja 06": {total: 300.00,  atend: 1},
-                "Loja 07": {total: 1220.00, atend: 2},
-          },
-      };
-      // Metas e devoluções por loja — só mudam quando o usuário pedir explicitamente (não é
-      // tocado pela automação horária).
-      const storeMeta = [
-        {name:"Loja 01", meta:180000, devol:0},
-        {name:"Loja 02", meta:140000, devol:0},
-        {name:"Loja 03", meta:150000, devol:0},
-        {name:"Loja 04", meta:150000, devol:0},
-        {name:"Loja 05", meta:85000,  devol:0},
-        {name:"Loja 06", meta:85000,  devol:0},
-        {name:"Loja 07", meta:110000, devol:0},
-        ];
-      const stores = storeMeta.map(s => {
-          const base = MONTH_BASE[s.name] || {total:0, atend:0};
-          const today = TODAY.stores[s.name] || {total:0, atend:0};
-          const total = Math.round((base.total + today.total) * 100) / 100;
-          const atend = base.atend + today.atend;
-          const net = Math.round((total - s.devol) * 100) / 100;
-          const dailyRate = net/DIAS_UTEIS_DECORRIDOS;
-          const projection = Math.round(dailyRate * DIAS_UTEIS_TOTAL * 100) / 100;
-          const metaPct = Math.round((net/s.meta) * 1000) / 10;
-          return {...s, total, atend, net, dailyRate, projection, metaPct};
-      });
-      const storesByName = [...stores].sort((a,b)=>a.name.localeCompare(b.name));
-      const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-      // ---- Card: Vendas de hoje ----
-      if(TODAY.total === null){
-          document.getElementById('todayTotal').textContent = 'Aguardando 1ª atualização';
-          document.getElementById('todayTotal').style.fontSize = '15px';
-          document.getElementById('todayTotal').style.color = 'var(--ink-soft)';
-          document.getElementById('todayAtend').textContent = '';
-          document.getElementById('todayStoreList').innerHTML = '<div class="hl-store-row" style="color:var(--ink-soft);">O card de hoje é preenchido automaticamente a cada execução agendada (a cada hora, 9h–19h).</div>';
-      } else {
-          document.getElementById('todayTotal').textContent = brl(TODAY.total);
-          document.getElementById('todayAtend').textContent = `${TODAY.atend} atendimentos hoje`;
-          const listEl = document.getElementById('todayStoreList');
-          listEl.innerHTML = '';
-          Object.entries(TODAY.stores).forEach(([name,val])=>{
-                const row = document.createElement('div');
-                row.className = 'hl-store-row';
-                row.innerHTML = `<span>DINIZ · ${name}</span><b>${brl(val.total)}</b>`;
-                listEl.appendChild(row);
-          });
-      }
-      // ---- Card: Vendas do mês (acumulado + projeção) ----
-      const monthTotalAll = stores.reduce((sum,s)=>sum+s.net, 0);
-      const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
-      document.getElementById('monthTotal').textContent = brl(monthTotalAll);
-      document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
-      document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
-      const monthListEl = document.getElementById('monthStoreList');
-      monthListEl.innerHTML = '';
-      storesByName.forEach(s=>{
-          const pctDisplay = s.metaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
-          const barWidth = Math.min(100, s.metaPct);
-          const row = document.createElement('div');
-          row.className = 'store-line';
-          row.innerHTML = `
-              <div class="store-line-top">
-                    <span>DINIZ · ${s.name}</span>
-                          <b>${brl(s.net)}</b>
-                              </div>
-                                  <div class="progress-track">
-                                        <div class="progress-fill" style="width:${barWidth}%"></div>
-                                            </div>
-                                                <div class="progress-label">${pctDisplay}% da meta (${brl(s.meta)}) · Projeção: ${brl(s.projection)}</div>
-                                                  `;
-          monthListEl.appendChild(row);
-      });
-    </script>
-  </body>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Média por dia útil (4/26)</div>
+        <div class="value gold">R$ 29.666,00</div>
+        <div class="foot">Ritmo médio dos dias úteis já passados</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Devoluções no mês</div>
+        <div class="value na" style="color:var(--ink-soft); font-size:14px;">Ainda não informado</div>
+        <div class="foot">Me envie quando tiver, que eu já desconto</div>
+      </div>
+    </div>
+
+    <footer>
+      <span>Fonte: Dataweb BI (Faturômetro) — dados de cadastro sem considerar devoluções/sinais.</span>
+      <span>Óticas Diniz</span>
+    </footer>
+
+  </div>
+
+  </div>
+
+<script>
+const DASHBOARD_PASSWORD = "2008";
+
+document.getElementById('pwBtn').addEventListener('click', tryLogin);
+document.getElementById('pwInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') tryLogin();
+});
+
+function tryLogin(){
+  const input = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if(input.value === DASHBOARD_PASSWORD){
+    sessionStorage.setItem('dinizAuth', '1');
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('dashboardContent').style.display = 'block';
+  } else {
+    err.textContent = 'Senha incorreta, tente de novo.';
+    input.value = '';
+    input.focus();
+  }
+}
+
+// Se já autenticou nesta aba (sessionStorage), pula a tela de senha —
+// importante porque a página recarrega sozinha a cada 15 min (auto-refresh acima).
+if(sessionStorage.getItem('dinizAuth') === '1'){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'block';
+}
+</script>
+<script>
+const DIAS_UTEIS_DECORRIDOS = 4;  // dias úteis já passados no mês (não conta domingo)
+const DIAS_UTEIS_TOTAL = 26;      // total de dias úteis do mês — atualize aqui a cada consulta
+
+// Saldo do mês já FECHADO até o dia anterior (por loja) — recalculado só na 1ª execução
+// de cada dia (consultando o BI com filtro dia 1 até ontem). Nas demais execuções do
+// mesmo dia isso permanece igual, e só o TODAY abaixo muda.
+const MONTH_BASE_DATE = "2026-08-04"; // até este dia (inclusive) o saldo abaixo já está fechado
+const MONTH_BASE = {
+  "Loja 01": {total: 12626.00, atend: 14},
+  "Loja 02": {total: 23541.00, atend: 11},
+  "Loja 03": {total: 13200.00, atend: 8},
+  "Loja 04": {total: 19105.00, atend: 11},
+  "Loja 05": {total: 9676.00,  atend: 6},
+  "Loja 06": {total: 14725.00, atend: 12},
+  "Loja 07": {total: 6434.00,  atend: 3},
+};
+
+// Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
+// usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
+const TODAY = {
+  total: 19357.00,
+  atend: 15,
+  stores: {
+    "Loja 01": {total: 3200.00, atend: 1},
+    "Loja 02": {total: 4564.00, atend: 4},
+    "Loja 03": {total: 4923.00, atend: 4},
+    "Loja 04": {total: 5150.00, atend: 3},
+    "Loja 05": {total: 0.00,    atend: 0},
+    "Loja 06": {total: 300.00,  atend: 1},
+    "Loja 07": {total: 1220.00, atend: 2},
+  },
+};
+
+// Metas e devoluções por loja — só mudam quando o usuário pedir explicitamente (não é
+// tocado pela automação horária).
+const storeMeta = [
+  {name:"Loja 01", meta:180000, devol:0},
+  {name:"Loja 02", meta:140000, devol:0},
+  {name:"Loja 03", meta:150000, devol:0},
+  {name:"Loja 04", meta:150000, devol:0},
+  {name:"Loja 05", meta:85000,  devol:0},
+  {name:"Loja 06", meta:85000,  devol:0},
+  {name:"Loja 07", meta:110000, devol:0},
+];
+
+const stores = storeMeta.map(s => {
+  const base = MONTH_BASE[s.name] || {total:0, atend:0};
+  const today = TODAY.stores[s.name] || {total:0, atend:0};
+  const total = Math.round((base.total + today.total) * 100) / 100;
+  const atend = base.atend + today.atend;
+  const net = Math.round((total - s.devol) * 100) / 100;
+  const dailyRate = net/DIAS_UTEIS_DECORRIDOS;
+  const projection = Math.round(dailyRate * DIAS_UTEIS_TOTAL * 100) / 100;
+  const metaPct = Math.round((net/s.meta) * 1000) / 10;
+  return {...s, total, atend, net, dailyRate, projection, metaPct};
+});
+
+const storesByName = [...stores].sort((a,b)=>a.name.localeCompare(b.name));
+
+const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+// ---- Card: Vendas de hoje ----
+if(TODAY.total === null){
+  document.getElementById('todayTotal').textContent = 'Aguardando 1ª atualização';
+  document.getElementById('todayTotal').style.fontSize = '15px';
+  document.getElementById('todayTotal').style.color = 'var(--ink-soft)';
+  document.getElementById('todayAtend').textContent = '';
+  document.getElementById('todayStoreList').innerHTML = '<div class="hl-store-row" style="color:var(--ink-soft);">O card de hoje é preenchido automaticamente a cada execução agendada (a cada hora, 9h–19h).</div>';
+} else {
+  document.getElementById('todayTotal').textContent = brl(TODAY.total);
+  document.getElementById('todayAtend').textContent = `${TODAY.atend} atendimentos hoje`;
+  const listEl = document.getElementById('todayStoreList');
+  listEl.innerHTML = '';
+  Object.entries(TODAY.stores).forEach(([name,val])=>{
+    const row = document.createElement('div');
+    row.className = 'hl-store-row';
+    row.innerHTML = `<span>DINIZ · ${name}</span><b>${brl(val.total)}</b>`;
+    listEl.appendChild(row);
+  });
+}
+
+// ---- Card: Vendas do mês (acumulado + projeção) ----
+const monthTotalAll = stores.reduce((sum,s)=>sum+s.net, 0);
+const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
+document.getElementById('monthTotal').textContent = brl(monthTotalAll);
+document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
+document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
+const monthListEl = document.getElementById('monthStoreList');
+monthListEl.innerHTML = '';
+storesByName.forEach(s=>{
+  const pctDisplay = s.metaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
+  const barWidth = Math.min(100, s.metaPct);
+  const row = document.createElement('div');
+  row.className = 'store-line';
+  row.innerHTML = `
+    <div class="store-line-top">
+      <span>DINIZ · ${s.name}</span>
+      <b>${brl(s.net)}</b>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width:${barWidth}%"></div>
+    </div>
+    <div class="progress-label">${pctDisplay}% da meta (${brl(s.meta)}) · Projeção: ${brl(s.projection)}</div>
+  `;
+  monthListEl.appendChild(row);
+});
+</script>
+
+</body>
 </html>
