@@ -188,7 +188,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 10/08/2026 às 15:30</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 10/08/2026 às 16:05</div>
     </div>
   </div>
 
@@ -217,7 +217,7 @@
         </div>
         <div class="hl-store-list" id="monthStoreList"></div>
         <div class="hl-store-row" style="margin-top:8px; background:var(--beige);">
-          <span>Projeção de fechamento do mês</span>
+          <span>Projejsão de fechamento do mês</span>
           <b id="monthProjection">–</b>
         </div>
       </div>
@@ -226,7 +226,7 @@
     <div class="kpis">
       <div class="kpi">
         <div class="label">Média por dia útil (8/26)</div>
-        <div class="value gold">R$ 34.710,00</div>
+        <div class="value gold">R$ 35.606,00</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
@@ -295,15 +295,15 @@ const MONTH_BASE = {
 // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
 // usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
 const TODAY = {
-  total: 21931,
-  atend: 17,
+  total: 29099,
+  atend: 21,
   stores: {
     "Loja 01": {total: 4491.00, atend: 5},
-    "Loja 02": {total: 0, atend: 0},
-    "Loja 03": {total: 9196.00, atend: 5},
-    "Loja 04": {total: 5050.00, atend: 4},
+    "Loja 02": {total: 1398.00, atend: 1},
+    "Loja 03": {total: 11696.00, atend: 6},
+    "Loja 04": {total: 5700.00, atend: 5},
     "Loja 05": {total: 1634.00, atend: 2},
-    "Loja 06": {total: 0, atend: 0},
+    "Loja 06": {total: 2620.00, atend: 1},
     "Loja 07": {total: 1560.00, atend: 1},
   },
 };
@@ -356,7 +356,7 @@ if(TODAY.total === null){
   });
 }
 
-// ---- Card: Vendas do mês (acumulado + projejso) ----
+// ---- Card: Vendas do mês (acumulado + projeção) ----
 const monthTotalAll = stores.reduce((sum,s)=>sum+s.net, 0);
 const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
 document.getElementById('monthTotal').textContent = brl(monthTotalAll);
