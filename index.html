@@ -188,7 +188,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 10/08/2026 às 18:54</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 11/08/2026 às 10:39</div>
     </div>
   </div>
 
@@ -220,13 +220,17 @@
           <span>Projeção de fechamento do mês</span>
           <b id="monthProjection">–</b>
         </div>
+        <div class="hl-store-row" style="margin-top:8px;">
+          <span id="prevPeriodLabel">Mesmo período do mês anterior</span>
+          <b id="prevPeriodValue">–</b>
+        </div>
       </div>
     </div>
 
     <div class="kpis">
       <div class="kpi">
-        <div class="label">Média por dia útil (8/26)</div>
-        <div class="value gold">R$ 37.150,00</div>
+        <div class="label">Média por dia útil (9/26)</div>
+        <div class="value gold">R$ 33.798,89</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
@@ -275,36 +279,45 @@ if(sessionStorage.getItem('dinizAuth') === '1'){
 }
 </script>
 <script>
-const DIAS_UTEIS_DECORRIDOS = 8;  // dias úteis já passados no mês (não conta domingo)
+const DIAS_UTEIS_DECORRIDOS = 9;  // dias úteis já passados no mês (não conta domingo)
 const DIAS_UTEIS_TOTAL = 26;      // total de dias úteis do mês — atualize aqui a cada consulta
 
 // Saldo do mês já FECHADO até o dia anterior (por loja) — recalculado só na 1ª execução
 // de cada dia (consultando o BI com filtro dia 1 até ontem). Nas demais execuções do
 // mesmo dia isso permanece igual, e só o TODAY abaixo muda.
-const MONTH_BASE_DATE = "2026-08-09"; // até este dia (inclusive) o saldo abaixo já está fechado
+const MONTH_BASE_DATE = "2026-08-10"; // até este dia (inclusive) o saldo abaixo já está fechado
 const MONTH_BASE = {
-  "Loja 01": {total: 44560.02, atend: 35},
-  "Loja 02": {total: 44163.01, atend: 29},
-  "Loja 03": {total: 27740.00, atend: 20},
-  "Loja 04": {total: 61992.00, atend: 37},
-  "Loja 05": {total: 14056.00, atend: 10},
-  "Loja 06": {total: 33205.00, atend: 27},
-  "Loja 07": {total: 30033.00, atend: 20},
+  "Loja 01": {total: 49051.02, atend: 40},
+  "Loja 02": {total: 49664.01, atend: 32},
+  "Loja 03": {total: 40335.00, atend: 27},
+  "Loja 04": {total: 71192.00, atend: 44},
+  "Loja 05": {total: 15690.00, atend: 12},
+  "Loja 06": {total: 38725.00, atend: 29},
+  "Loja 07": {total: 32543.00, atend: 22},
+};
+
+// Comparativo: MESMO PERÍODO DO MÊS ANTERIOR (dia 1 até o mesmo dia de hoje, mês passado).
+// Atualizado 1x/dia pela automação (junto com o MONTH_BASE), consultando o BI com o
+// filtro do mês anterior. Vendas brutas (sem descontar devoluções), igual ao BI.
+const PREV_PERIOD = {
+  label: "01/07 a 11/07",
+  total: 314145.72,
+  atend: 233,
 };
 
 // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
 // usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
 const TODAY = {
-  total: 41451,
-  atend: 28,
+  total: 6990.00,
+  atend: 6,
   stores: {
-    "Loja 01": {total: 4491.00, atend: 5},
-    "Loja 02": {total: 5501.00, atend: 3},
-    "Loja 03": {total: 12595.00, atend: 7},
-    "Loja 04": {total: 9200.00, atend: 7},
-    "Loja 05": {total: 1634.00, atend: 2},
-    "Loja 06": {total: 5520.00, atend: 2},
-    "Loja 07": {total: 2510.00, atend: 2},
+    "Loja 01": {total: 120.00, atend: 1},
+    "Loja 02": {total: 390.00, atend: 1},
+    "Loja 03": {total: 550.00, atend: 1},
+    "Loja 04": {total: 0, atend: 0},
+    "Loja 05": {total: 0, atend: 0},
+    "Loja 06": {total: 0, atend: 0},
+    "Loja 07": {total: 5930.00, atend: 3},
   },
 };
 
@@ -362,6 +375,15 @@ const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
 document.getElementById('monthTotal').textContent = brl(monthTotalAll);
 document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
 document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
+
+// ---- Comparativo com o mesmo período do mês anterior ----
+if (typeof PREV_PERIOD !== 'undefined' && PREV_PERIOD && PREV_PERIOD.total > 0) {
+  const diff = ((monthTotalAll - PREV_PERIOD.total) / PREV_PERIOD.total) * 100;
+  const diffTxt = (diff >= 0 ? '+' : '−') + Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+  const diffColor = diff >= 0 ? '#1a7a3a' : 'var(--red)';
+  document.getElementById('prevPeriodLabel').textContent = `Mesmo período do mês anterior (${PREV_PERIOD.label})`;
+  document.getElementById('prevPeriodValue').innerHTML = `${brl(PREV_PERIOD.total)} · <span style="color:${diffColor}">${diffTxt}</span>`;
+}
 const monthListEl = document.getElementById('monthStoreList');
 monthListEl.innerHTML = '';
 storesByName.forEach(s=>{
@@ -382,5 +404,6 @@ storesByName.forEach(s=>{
   monthListEl.appendChild(row);
 });
 </script>
+
 </body>
 </html>
