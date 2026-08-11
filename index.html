@@ -188,7 +188,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 11/08/2026 às 10:39</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 11/08/2026 às 10:55</div>
     </div>
   </div>
 
@@ -213,6 +213,7 @@
           <div>
             <div class="hl-value" id="monthTotal">–</div>
             <div class="hl-sub" id="monthDaysLabel">Total do mês inteiro até agora</div>
+            <div class="hl-sub" id="prevPeriodLine" style="margin-top:3px; font-size:11.5px;"></div>
           </div>
         </div>
         <div class="hl-store-list" id="monthStoreList"></div>
@@ -220,17 +221,13 @@
           <span>Projeção de fechamento do mês</span>
           <b id="monthProjection">–</b>
         </div>
-        <div class="hl-store-row" style="margin-top:8px;">
-          <span id="prevPeriodLabel">Mesmo período do mês anterior</span>
-          <b id="prevPeriodValue">–</b>
-        </div>
       </div>
     </div>
 
     <div class="kpis">
       <div class="kpi">
         <div class="label">Média por dia útil (9/26)</div>
-        <div class="value gold">R$ 33.798,89</div>
+        <div class="value gold">R$ 33.860,89</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
@@ -299,24 +296,34 @@ const MONTH_BASE = {
 // Comparativo: MESMO PERÍODO DO MÊS ANTERIOR (dia 1 até o mesmo dia de hoje, mês passado).
 // Atualizado 1x/dia pela automação (junto com o MONTH_BASE), consultando o BI com o
 // filtro do mês anterior. Vendas brutas (sem descontar devoluções), igual ao BI.
+// "stores" = total por loja no mesmo período (usado nas linhas por loja do card do mês).
 const PREV_PERIOD = {
   label: "01/07 a 11/07",
   total: 314145.72,
   atend: 233,
+  stores: {
+    "Loja 01": 64725.15,
+    "Loja 02": 44273.99,
+    "Loja 03": 58851.00,
+    "Loja 04": 55923.23,
+    "Loja 05": 23993.95,
+    "Loja 06": 21368.00,
+    "Loja 07": 45010.40,
+  },
 };
 
 // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
 // usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
 const TODAY = {
-  total: 6990.00,
-  atend: 6,
+  total: 7548.00,
+  atend: 7,
   stores: {
     "Loja 01": {total: 120.00, atend: 1},
     "Loja 02": {total: 390.00, atend: 1},
     "Loja 03": {total: 550.00, atend: 1},
     "Loja 04": {total: 0, atend: 0},
     "Loja 05": {total: 0, atend: 0},
-    "Loja 06": {total: 0, atend: 0},
+    "Loja 06": {total: 558.00, atend: 1},
     "Loja 07": {total: 5930.00, atend: 3},
   },
 };
@@ -376,19 +383,20 @@ document.getElementById('monthTotal').textContent = brl(monthTotalAll);
 document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
 document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
 
-// ---- Comparativo com o mesmo período do mês anterior ----
+// ---- Comparativo com o mesmo período do mês anterior (linha pequena sob o total) ----
 if (typeof PREV_PERIOD !== 'undefined' && PREV_PERIOD && PREV_PERIOD.total > 0) {
   const diff = ((monthTotalAll - PREV_PERIOD.total) / PREV_PERIOD.total) * 100;
   const diffTxt = (diff >= 0 ? '+' : '−') + Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
   const diffColor = diff >= 0 ? '#1a7a3a' : 'var(--red)';
-  document.getElementById('prevPeriodLabel').textContent = `Mesmo período do mês anterior (${PREV_PERIOD.label})`;
-  document.getElementById('prevPeriodValue').innerHTML = `${brl(PREV_PERIOD.total)} · <span style="color:${diffColor}">${diffTxt}</span>`;
+  document.getElementById('prevPeriodLine').innerHTML = `Mês passado neste período (${PREV_PERIOD.label}): <b>${brl(PREV_PERIOD.total)}</b> · <span style="color:${diffColor}; font-weight:700;">${diffTxt}</span>`;
 }
 const monthListEl = document.getElementById('monthStoreList');
 monthListEl.innerHTML = '';
 storesByName.forEach(s=>{
   const pctDisplay = s.metaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
   const barWidth = Math.min(100, s.metaPct);
+  const prev = (PREV_PERIOD && PREV_PERIOD.stores) ? PREV_PERIOD.stores[s.name] : null;
+  const prevLine = (prev != null) ? `<div class="progress-label">Mês passado (${PREV_PERIOD.label}): ${brl(prev)}</div>` : '';
   const row = document.createElement('div');
   row.className = 'store-line';
   row.innerHTML = `
@@ -400,6 +408,7 @@ storesByName.forEach(s=>{
       <div class="progress-fill" style="width:${barWidth}%"></div>
     </div>
     <div class="progress-label">${pctDisplay}% da meta (${brl(s.meta)}) · Projeção: ${brl(s.projection)}</div>
+    ${prevLine}
   `;
   monthListEl.appendChild(row);
 });
