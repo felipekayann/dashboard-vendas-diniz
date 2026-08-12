@@ -188,7 +188,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/08/2026 a 31/08/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 12/08/2026 às 15:11</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 12/08/2026 às 15:48</div>
     </div>
   </div>
 
@@ -227,18 +227,18 @@
     <div class="kpis">
       <div class="kpi">
         <div class="label">Média por dia útil (10/26)</div>
-        <div class="value gold">R$ 38.360,50</div>
+        <div class="value gold">R$ 38.004,10</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
         <div class="label">Devoluções no mês</div>
-        <div class="value na" style="color:var(--ink-soft); font-size:14px;">Ainda não informado</div>
-        <div class="foot">Me envie quando tiver, que eu já desconto</div>
+        <div class="value">R$ 3.564,00</div>
+        <div class="foot">Loja 01: R$ 1.380,00 · Loja 02: R$ 798,00 · Loja 05: R$ 1.386,00</div>
       </div>
     </div>
 
     <footer>
-      <span>Fonte: Dataweb BI (Faturômetro) — dados de cadastro sem considerar devoluções/sinais.</span>
+      <span>Fonte: Dataweb BI (Faturômetro) — devoluções informadas manualmente e já descontadas do vendido/projeção.</span>
       <span>Óticas Diniz</span>
     </footer>
 
@@ -330,11 +330,11 @@ const TODAY = {
 // Metas e devoluções por loja — só mudam quando o usuário pedir explicitamente (não é
 // tocado pela automação horária).
 const storeMeta = [
-  {name:"Loja 01", meta:180000, devol:0},
-  {name:"Loja 02", meta:140000, devol:0},
+  {name:"Loja 01", meta:180000, devol:1380.00},
+  {name:"Loja 02", meta:140000, devol:798.00},
   {name:"Loja 03", meta:150000, devol:0},
   {name:"Loja 04", meta:150000, devol:0},
-  {name:"Loja 05", meta:85000,  devol:0},
+  {name:"Loja 05", meta:85000,  devol:1386.00},
   {name:"Loja 06", meta:85000,  devol:0},
   {name:"Loja 07", meta:110000, devol:0},
 ];
