@@ -1,0 +1,73 @@
+name: Atualizar dashboard de vendas
+
+on:
+  # Horário de Brasília é UTC-3, então 8h-19h BRT = 11h-22h UTC.
+  # Segunda a sábado (as lojas não abrem domingo).
+  schedule:
+    - cron: '0 11-22 * * 1-6'
+  # Permite rodar na mão pelo botão "Run workflow" na aba Actions.
+  workflow_dispatch:
+
+# Necessário para o GITHUB_TOKEN conseguir commitar de volta no repositório.
+permissions:
+  contents: write
+
+# Se uma execução ainda estiver rodando quando a próxima começar, espera a
+# primeira terminar em vez de commitar as duas em cima uma da outra.
+concurrency:
+  group: atualizar-dashboard
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Playwright
+        run: |
+          npm install playwright@1.47.0
+          npx playwright install --with-deps chromium
+
+      - name: Atualizar o dashboard a partir do BI
+        env:
+          DW_EMAIL: ${{ secrets.DW_EMAIL }}
+          DW_SENHA: ${{ secrets.DW_SENHA }}
+        run: node scripts/atualizar-dashboard.mjs
+
+      - name: Mostrar o resumo do dia
+        if: success()
+        run: cat resumo.txt
+
+      - name: Guardar print da tela se der erro
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erro-screenshot
+          path: erro.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publicar (commit na branch main)
+        if: success()
+        run: |
+          git config user.name "automacao-dashboard"
+          git config user.email "actions@github.com"
+          # Arquivos auxiliares não vão para o repositório.
+          rm -f resumo.txt erro.png
+          if git diff --quiet -- index.html; then
+            echo "Nada mudou no index.html — nada a commitar."
+            exit 0
+          fi
+          AGORA=$(TZ=America/Sao_Paulo date '+%d/%m %H:%M')
+          git add index.html
+          git commit -m "Atualização automática $AGORA"
+          git push
