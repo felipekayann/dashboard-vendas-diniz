@@ -80,6 +80,11 @@ async function login(page) {
     throw new Error('Login recusado pelo BI. ' + (erro || 'Confira os secrets DW_EMAIL e DW_SENHA.'));
   }
   log('login OK');
+
+  // O redirecionamento pós-login pode parar na home do portal em vez do
+  // dashboard. Voltar explicitamente para a URL do Faturômetro.
+  await page.goto(BI_URL, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+  log('de volta ao dashboard: ' + page.url());
 }
 
 /** Ajusta o filtro de data do dashboard e espera os dados recarregarem. */
@@ -88,7 +93,12 @@ async function aplicarFiltro(page, deISO, ateISO) {
   const [a2, m2, d2] = ateISO.split('-').map(Number);
   log(`filtro: ${deISO} até ${ateISO}`);
 
-  await page.waitForSelector('text=Resumo faturômetro', { timeout: 90_000 });
+  try {
+    await page.waitForSelector('text=Resumo faturômetro', { timeout: 90_000 });
+  } catch (e) {
+    const trecho = await page.evaluate(() => document.body.innerText.slice(0, 600)).catch(() => '(sem texto)');
+    throw new Error('Dashboard não carregou. URL=' + page.url() + ' | Página mostra: ' + trecho);
+  }
 
   const botao = page.locator(
     '[aria-label="Dashboard Parameters"], [title="Dashboard Parameters"]'
