@@ -1,12 +1,12 @@
 name: Atualizar dashboard de vendas
 
 on:
-  # Horário de Brasília é UTC-3, então 8h-19h BRT = 11h-22h UTC.
-  # Segunda a sábado (as lojas não abrem domingo).
-  schedule:
-    # Minuto 13 de proposito: no minuto 0 a fila do GitHub congestiona e as
-    # execucoes agendadas sao atrasadas ou ate descartadas.
-    - cron: '13 11-22 * * 1-6'
+  # AGENDAMENTO DESLIGADO em 26/08/2026.
+  # O agendador do GitHub perdeu 4 janelas seguidas e depois voltou atrasado.
+  # Quem manda na hora agora e o Cloudflare Worker 'dashboard-diniz-agendador',
+  # que chama este workflow pela API do GitHub.
+  # NAO reative o schedule aqui sem antes desligar o cron do Worker, senao o
+  # dashboard atualiza duas vezes por hora e estoura o limite de publicacoes.
   # Permite rodar na mão pelo botão "Run workflow" na aba Actions.
   workflow_dispatch:
 
