@@ -142,16 +142,25 @@ async function aplicarFiltro(page, deISO, ateISO) {
 }
 
 /** Lê a tabela "Resumo faturômetro" e devolve {loja: {total, atend}}. */
-async function lerResumo(page) {
-  const texto = await page.evaluate(() => {
-    const alvos = [...document.querySelectorAll('div')].filter(
-      e => e.innerText && e.innerText.includes('Resumo faturômetro') && e.innerText.includes('DINIZ')
-    );
-    if (!alvos.length) return null;
-    alvos.sort((a, b) => a.innerText.length - b.innerText.length);
-    return alvos[0].innerText;
-  });
-  if (!texto) throw new Error('Tabela "Resumo faturômetro" não encontrada na página.');
+async function lerResumo(page, permitirVazio = false) {
+  // A grade só lista lojas QUE VENDERAM. De manhã cedo ela pode vir vazia ou
+  // com parte das lojas. Detectamos que ela carregou pelo cabeçalho 'Empresa',
+  // e não pela presença de linhas DINIZ.
+  let texto = null;
+  for (let tentativa = 1; tentativa <= 4; tentativa++) {
+    texto = await page.evaluate(() => {
+      const alvos = [...document.querySelectorAll('div')].filter(
+        e => e.innerText && e.innerText.includes('Resumo faturômetro') && e.innerText.includes('Empresa')
+      );
+      if (!alvos.length) return null;
+      alvos.sort((a, b) => a.innerText.length - b.innerText.length);
+      return alvos[0].innerText;
+    });
+    if (texto && texto.includes('DINIZ')) break;
+    if (texto && permitirVazio && tentativa >= 3) break;
+    await page.waitForTimeout(8_000);
+  }
+  if (!texto) throw new Error('Tabela "Resumo faturômetro" não carregou (sem cabeçalho).');
 
   const lojas = {};
   // Formato do BI: "DINIZ- LOJA 01 4,565.00 4" (número no padrão americano)
@@ -166,7 +175,12 @@ async function lerResumo(page) {
 
   const faltando = LOJAS.filter(l => !(l in lojas));
   if (faltando.length) {
-    throw new Error(`Lojas ausentes na leitura: ${faltando.join(', ')}. Texto lido:\n${texto.slice(0, 500)}`);
+    // Sem venda no período, a loja simplesmente não aparece na grade.
+    if (!permitirVazio) {
+      throw new Error(`Lojas ausentes na leitura: ${faltando.join(', ')}. Texto lido:\n${texto.slice(0, 500)}`);
+    }
+    log(`sem venda ainda em: ${faltando.join(', ')} - lancando zero`);
+    for (const l of faltando) lojas[l] = { total: 0, atend: 0 };
   }
 
   // Confere com o "Sum =" que o próprio BI exibe, para pegar leitura parcial.
@@ -242,7 +256,7 @@ async function main() {
 
     // --- Passo 1: vendas de HOJE (toda execução) ---
     await aplicarFiltro(page, hojeISO, hojeISO);
-    const hoje = await lerResumo(page);
+    const hoje = await lerResumo(page, true);
     const totalHoje = LOJAS.reduce((s, l) => s + hoje[l].total, 0);
     const atendHoje = LOJAS.reduce((s, l) => s + hoje[l].atend, 0);
     log(`hoje: ${brl(totalHoje)} em ${atendHoje} atendimentos`);
