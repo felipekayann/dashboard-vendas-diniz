@@ -4,7 +4,9 @@ on:
   # Horário de Brasília é UTC-3, então 8h-19h BRT = 11h-22h UTC.
   # Segunda a sábado (as lojas não abrem domingo).
   schedule:
-    - cron: '0 11-22 * * 1-6'
+    # Minuto 13 de proposito: no minuto 0 a fila do GitHub congestiona e as
+    # execucoes agendadas sao atrasadas ou ate descartadas.
+    - cron: '13 11-22 * * 1-6'
   # Permite rodar na mão pelo botão "Run workflow" na aba Actions.
   workflow_dispatch:
 
