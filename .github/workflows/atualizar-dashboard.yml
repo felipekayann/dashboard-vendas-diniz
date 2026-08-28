@@ -43,6 +43,7 @@ jobs:
         env:
           DW_EMAIL: ${{ secrets.DW_EMAIL }}
           DW_SENHA: ${{ secrets.DW_SENHA }}
+          TOKEN_AUTOMACAO: ${{ secrets.TOKEN_AUTOMACAO }}
         run: node scripts/atualizar-dashboard.mjs
 
       - name: Mostrar o resumo do dia
