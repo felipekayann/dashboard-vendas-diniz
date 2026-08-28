@@ -244,6 +244,23 @@
       </div>
     </div>
 
+    <div class="kpi" style="margin-top:16px;">
+      <div class="label">Lançar devolução</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+        <select id="devolLoja" style="padding:9px 10px; border:1.5px solid var(--line); border-radius:8px; font-family:Inter,sans-serif; font-size:14px;">
+          <option>Loja 01</option><option>Loja 02</option><option>Loja 03</option><option>Loja 04</option>
+          <option>Loja 05</option><option>Loja 06</option><option>Loja 07</option>
+        </select>
+        <input id="devolValor" placeholder="Total de devolução do mês (ex: 1699,00)" style="flex:1; min-width:200px; padding:9px 10px; border:1.5px solid var(--line); border-radius:8px; font-family:Inter,sans-serif; font-size:14px;">
+        <input id="devolSenha" type="password" placeholder="Senha" style="width:120px; padding:9px 10px; border:1.5px solid var(--line); border-radius:8px; font-family:Inter,sans-serif; font-size:14px;">
+        <button id="devolBtn" style="padding:10px 18px; border:none; border-radius:8px; background:var(--red); color:#fff; font-family:Inter,sans-serif; font-weight:700; font-size:14px; cursor:pointer;">Salvar</button>
+      </div>
+      <div class="foot" id="devolAviso" style="margin-top:8px; min-height:16px;"></div>
+      <div class="foot" style="margin-top:2px;">Substitui o total de devolução da loja neste mês. Desconta do vendido, da meta e da projeção.</div>
+    </div>
+
+    <div class="foot" id="fonteAviso" style="margin-top:10px; color:var(--red);"></div>
+
     <footer>
       <span>Fonte: Dataweb BI (Faturômetro) — devoluções informadas manualmente e já descontadas do vendido/projeção.</span>
       <span>Óticas Diniz</span>
@@ -346,92 +363,185 @@ const storeMeta = [
   {name:"Loja 07", meta:110000, devol:0},
 ];
 
-// Super meta = meta da loja + R$ 20.000. Só aparece no card depois que a loja bate a meta normal.
+// Metas: super meta = meta + 20 mil; mega meta = super meta + 20 mil.
 const SUPER_META_EXTRA = 20000;
+const MEGA_META_EXTRA  = 40000;
 
-const stores = storeMeta.map(s => {
-  const base = MONTH_BASE[s.name] || {total:0, atend:0};
-  const today = TODAY.stores[s.name] || {total:0, atend:0};
-  const total = Math.round((base.total + today.total) * 100) / 100;
-  const atend = base.atend + today.atend;
-  const net = Math.round((total - s.devol) * 100) / 100;
-  const dailyRate = net/DIAS_UTEIS_DECORRIDOS;
-  const projection = Math.round(dailyRate * DIAS_UTEIS_TOTAL * 100) / 100;
-  const metaPct = Math.round((net/s.meta) * 1000) / 10;
-  const superMeta = s.meta + SUPER_META_EXTRA;
-  const superFalta = Math.round((superMeta - net) * 100) / 100;
-  const superPct = Math.round((net/superMeta) * 1000) / 10;
-  return {...s, total, atend, net, dailyRate, projection, metaPct, superMeta, superFalta, superPct};
-});
+const WORKER = 'https://dashboard-diniz-agendador.felipekayann.workers.dev';
 
-const storesByName = [...stores].sort((a,b)=>a.name.localeCompare(b.name));
+const brl = n => n.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+const pct = n => n.toLocaleString('pt-BR', { minimumFractionDigits:1, maximumFractionDigits:1 });
 
-const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+// Fonte dos numeros: o cofre quando responder; senao os valores deste arquivo.
+let FONTE = {
+  carimbo: null,
+  monthBase: MONTH_BASE,
+  today: TODAY,
+  diasUteis: { decorridos: DIAS_UTEIS_DECORRIDOS, total: DIAS_UTEIS_TOTAL },
+  prevPeriod: (typeof PREV_PERIOD !== 'undefined' ? PREV_PERIOD : null),
+  devolucoes: null,
+};
 
-// ---- Card: Vendas de hoje ----
-if(TODAY.total === null){
-  document.getElementById('todayTotal').textContent = 'Aguardando 1ª atualização';
-  document.getElementById('todayTotal').style.fontSize = '15px';
-  document.getElementById('todayTotal').style.color = 'var(--ink-soft)';
-  document.getElementById('todayAtend').textContent = '';
-  document.getElementById('todayStoreList').innerHTML = '<div class="hl-store-row" style="color:var(--ink-soft);">O card de hoje é preenchido automaticamente a cada execução agendada (a cada hora, 9h–19h).</div>';
-} else {
-  document.getElementById('todayTotal').textContent = brl(TODAY.total);
-  document.getElementById('todayAtend').textContent = `${TODAY.atend} atendimentos hoje`;
-  const listEl = document.getElementById('todayStoreList');
-  listEl.innerHTML = '';
-  Object.entries(TODAY.stores).forEach(([name,val])=>{
-    const row = document.createElement('div');
-    row.className = 'hl-store-row';
-    row.innerHTML = `<span>DINIZ · ${name}</span><b>${brl(val.total)}</b>`;
-    listEl.appendChild(row);
+function calcular() {
+  const du = FONTE.diasUteis;
+  return storeMeta.map(function (s) {
+    const base = FONTE.monthBase[s.name] || { total:0, atend:0 };
+    const hj = (FONTE.today.stores || {})[s.name] || { total:0, atend:0 };
+    const devol = (FONTE.devolucoes && FONTE.devolucoes[s.name] != null)
+      ? FONTE.devolucoes[s.name] : s.devol;
+    const total = Math.round((base.total + hj.total) * 100) / 100;
+    const net = Math.round((total - devol) * 100) / 100;
+    const superMeta = s.meta + SUPER_META_EXTRA;
+    const megaMeta = s.meta + MEGA_META_EXTRA;
+    return {
+      name: s.name, meta: s.meta, devol: devol, total: total,
+      atend: base.atend + hj.atend, net: net,
+      projection: Math.round((net / du.decorridos) * du.total * 100) / 100,
+      metaPct: Math.round((net / s.meta) * 1000) / 10,
+      superMeta: superMeta, superFalta: Math.round((superMeta - net) * 100) / 100,
+      superPct: Math.round((net / superMeta) * 1000) / 10,
+      megaMeta: megaMeta, megaFalta: Math.round((megaMeta - net) * 100) / 100,
+      megaPct: Math.round((net / megaMeta) * 1000) / 10,
+    };
   });
 }
 
-// ---- Card: Vendas do mês (acumulado + projeção) ----
-const monthTotalAll = stores.reduce((sum,s)=>sum+s.net, 0);
-const monthProjectionAll = stores.reduce((sum,s)=>sum+s.projection, 0);
-document.getElementById('monthTotal').textContent = brl(monthTotalAll);
-document.getElementById('monthDaysLabel').textContent = `Mês inteiro · dia útil ${DIAS_UTEIS_DECORRIDOS} de ${DIAS_UTEIS_TOTAL}`;
-document.getElementById('monthProjection').textContent = brl(monthProjectionAll);
+function desenhar() {
+  const lojas = calcular();
+  const du = FONTE.diasUteis;
+  const porNome = lojas.slice().sort(function (a,b) { return a.name.localeCompare(b.name); });
 
-// ---- Comparativo com o mesmo período do mês anterior (linha pequena sob o total) ----
-if (typeof PREV_PERIOD !== 'undefined' && PREV_PERIOD && PREV_PERIOD.total > 0) {
-  const diff = ((monthTotalAll - PREV_PERIOD.total) / PREV_PERIOD.total) * 100;
-  const diffTxt = (diff >= 0 ? '+' : '−') + Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
-  const diffColor = diff >= 0 ? '#1a7a3a' : 'var(--red)';
-  document.getElementById('prevPeriodLine').innerHTML = `Mês passado neste período (${PREV_PERIOD.label}): <b>${brl(PREV_PERIOD.total)}</b> · <span style="color:${diffColor}; font-weight:700;">${diffTxt}</span>`;
-}
-const monthListEl = document.getElementById('monthStoreList');
-monthListEl.innerHTML = '';
-storesByName.forEach(s=>{
-  const pctDisplay = s.metaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
-  const barWidth = Math.min(100, s.metaPct);
-  const prev = (PREV_PERIOD && PREV_PERIOD.stores) ? PREV_PERIOD.stores[s.name] : null;
-  const prevLine = (prev != null) ? `<div class="progress-label">Mês passado (${PREV_PERIOD.label}): ${brl(prev)}</div>` : '';
-  // Super meta: só aparece depois que a loja bate a meta normal.
-  let superLine = '';
-  if (s.net >= s.meta) {
-    superLine = (s.net >= s.superMeta)
-      ? `<div class="super-line super-done">🏆 Super meta batida (${brl(s.superMeta)}) · ${brl(s.net - s.superMeta)} acima</div>`
-      : `<div class="super-line">⭐ Meta batida! Super meta ${brl(s.superMeta)} · faltam <b>${brl(s.superFalta)}</b> (${s.superPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)</div>`;
+  if (FONTE.carimbo) {
+    const upd = document.querySelector('.updated');
+    if (upd) upd.innerHTML = '<span class="dot"></span> Atualizado em ' + FONTE.carimbo;
   }
-  const row = document.createElement('div');
-  row.className = 'store-line';
-  row.innerHTML = `
-    <div class="store-line-top">
-      <span>DINIZ · ${s.name}</span>
-      <b>${brl(s.net)}</b>
-    </div>
-    <div class="progress-track">
-      <div class="progress-fill" style="width:${barWidth}%"></div>
-    </div>
-    <div class="progress-label">${pctDisplay}% da meta (${brl(s.meta)}) · Projeção: ${brl(s.projection)}</div>
-    ${superLine}
-    ${prevLine}
-  `;
-  monthListEl.appendChild(row);
+
+  const hj = FONTE.today;
+  const elHoje = document.getElementById('todayTotal');
+  if (hj && hj.total != null) {
+    elHoje.textContent = brl(hj.total);
+    document.getElementById('todayAtend').textContent = hj.atend + ' atendimentos hoje';
+    const lista = document.getElementById('todayStoreList');
+    lista.innerHTML = '';
+    Object.keys(hj.stores || {}).sort().forEach(function (nome) {
+      const row = document.createElement('div');
+      row.className = 'hl-store-row';
+      row.innerHTML = '<span>DINIZ · ' + nome + '</span><b>' + brl(hj.stores[nome].total) + '</b>';
+      lista.appendChild(row);
+    });
+  } else {
+    elHoje.textContent = 'Aguardando atualização';
+  }
+
+  const totalMes = lojas.reduce(function (s,x) { return s + x.net; }, 0);
+  const projMes = lojas.reduce(function (s,x) { return s + x.projection; }, 0);
+  document.getElementById('monthTotal').textContent = brl(totalMes);
+  document.getElementById('monthDaysLabel').textContent = 'Mês inteiro · dia útil ' + du.decorridos + ' de ' + du.total;
+  document.getElementById('monthProjection').textContent = brl(projMes);
+
+  const prev = FONTE.prevPeriod;
+  if (prev && prev.total > 0) {
+    const dif = ((totalMes - prev.total) / prev.total) * 100;
+    const txt = (dif >= 0 ? '+' : '−') + pct(Math.abs(dif)) + '%';
+    const cor = dif >= 0 ? '#1a7a3a' : 'var(--red)';
+    document.getElementById('prevPeriodLine').innerHTML =
+      'Mês passado neste período (' + prev.label + '): <b>' + brl(prev.total) +
+      '</b> · <span style="color:' + cor + '; font-weight:700;">' + txt + '</span>';
+  }
+
+  const lista = document.getElementById('monthStoreList');
+  lista.innerHTML = '';
+  porNome.forEach(function (s) {
+    let extra = '';
+    if (s.net >= s.megaMeta) {
+      extra = '<div class="super-line super-done">👑 MEGA META batida (' + brl(s.megaMeta) + ') · ' + brl(s.net - s.megaMeta) + ' acima</div>';
+    } else if (s.net >= s.superMeta) {
+      extra = '<div class="super-line super-done">🏆 Super meta batida · Mega meta ' + brl(s.megaMeta) + ' · faltam <b>' + brl(s.megaFalta) + '</b> (' + pct(s.megaPct) + '%)</div>';
+    } else if (s.net >= s.meta) {
+      extra = '<div class="super-line">⭐ Meta batida! Super meta ' + brl(s.superMeta) + ' · faltam <b>' + brl(s.superFalta) + '</b> (' + pct(s.superPct) + '%)</div>';
+    }
+    const pv = (prev && prev.stores) ? prev.stores[s.name] : null;
+    const linhaPrev = (pv != null) ? '<div class="progress-label">Mês passado (' + prev.label + '): ' + brl(pv) + '</div>' : '';
+    const linhaDev = s.devol > 0 ? '<div class="progress-label">Devolução descontada: ' + brl(s.devol) + '</div>' : '';
+    const row = document.createElement('div');
+    row.className = 'store-line';
+    row.innerHTML =
+      '<div class="store-line-top"><span>DINIZ · ' + s.name + '</span><b>' + brl(s.net) + '</b></div>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:' + Math.min(100, s.metaPct) + '%"></div></div>' +
+      '<div class="progress-label">' + pct(s.metaPct) + '% da meta (' + brl(s.meta) + ') · Projeção: ' + brl(s.projection) + '</div>' +
+      extra + linhaDev + linhaPrev;
+    lista.appendChild(row);
+  });
+
+  const kpis = document.querySelectorAll('.kpis .kpi');
+  if (kpis.length >= 2) {
+    const bruto = lojas.reduce(function (s,x) { return s + x.total; }, 0);
+    kpis[0].querySelector('.label').textContent = 'Média por dia útil (' + du.decorridos + '/' + du.total + ')';
+    kpis[0].querySelector('.value').textContent = brl(bruto / du.decorridos);
+    const totDev = lojas.reduce(function (s,x) { return s + x.devol; }, 0);
+    kpis[1].querySelector('.value').textContent = brl(totDev);
+    const det = lojas.filter(function (x) { return x.devol > 0; })
+      .map(function (x) { return x.name + ': ' + brl(x.devol); });
+    kpis[1].querySelector('.foot').textContent = det.length ? det.join(' · ') : 'Nenhuma devolução lançada neste mês';
+  }
+}
+
+async function carregar() {
+  try {
+    const r = await fetch(WORKER + '/dados?cb=' + Date.now(), { cache: 'no-store' });
+    const d = await r.json();
+    if (d && d.vendas && d.vendas.monthBase) {
+      FONTE = {
+        carimbo: d.vendas.carimbo || null,
+        monthBase: d.vendas.monthBase,
+        today: d.vendas.today,
+        diasUteis: d.vendas.diasUteis,
+        prevPeriod: d.vendas.prevPeriod,
+        devolucoes: d.devolucoes || {},
+      };
+    } else if (d) {
+      FONTE.devolucoes = d.devolucoes || {};
+    }
+  } catch (e) {
+    const av = document.getElementById('fonteAviso');
+    if (av) av.textContent = 'Sem conexão com o servidor de dados — mostrando os últimos números salvos na página.';
+  }
+  desenhar();
+}
+
+document.getElementById('devolBtn').addEventListener('click', async function () {
+  const aviso = document.getElementById('devolAviso');
+  const loja = document.getElementById('devolLoja').value;
+  const bruto = document.getElementById('devolValor').value.trim();
+  const senha = document.getElementById('devolSenha').value;
+  const valor = parseFloat(bruto.replace(/\./g, '').replace(',', '.'));
+  if (!isFinite(valor) || valor < 0) {
+    aviso.style.color = 'var(--red)'; aviso.textContent = 'Digite um valor válido.'; return;
+  }
+  if (!senha) {
+    aviso.style.color = 'var(--red)'; aviso.textContent = 'Digite a senha.'; return;
+  }
+  aviso.style.color = 'var(--ink-soft)'; aviso.textContent = 'Salvando...';
+  try {
+    const r = await fetch(WORKER + '/devolucao', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha: senha, loja: loja, valor: valor }),
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      aviso.style.color = 'var(--red)'; aviso.textContent = d.erro || 'Não foi possível salvar.'; return;
+    }
+    FONTE.devolucoes = d.devolucoes;
+    aviso.style.color = '#1a7a3a';
+    aviso.textContent = loja + ' atualizada para ' + brl(valor) + '.';
+    document.getElementById('devolValor').value = '';
+    desenhar();
+  } catch (e) {
+    aviso.style.color = 'var(--red)'; aviso.textContent = 'Falha de conexão. Tente de novo.';
+  }
 });
+
+carregar();
 </script>
 
 </body>
