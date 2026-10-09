@@ -195,7 +195,7 @@
       <div class="eyebrow">Faturômetro · Rede Diniz</div>
       <h1>Painel de Vendas</h1>
       <div class="sub">Período: 01/09/2026 a 30/09/2026 · 7 lojas</div>
-      <div class="updated"><span class="dot"></span> Atualizado em 08/10/2026 às 19:13</div>
+      <div class="updated"><span class="dot"></span> Atualizado em 09/10/2026 às 08:13</div>
     </div>
   </div>
 
@@ -233,8 +233,8 @@
 
     <div class="kpis">
       <div class="kpi">
-        <div class="label">Média por dia útil (7/27)</div>
-        <div class="value gold">R$ 39.418,11</div>
+        <div class="label">Média por dia útil (8/27)</div>
+        <div class="value gold">R$ 34.490,85</div>
         <div class="foot">Ritmo médio dos dias úteis já passados</div>
       </div>
       <div class="kpi">
@@ -300,20 +300,20 @@ if(sessionStorage.getItem('dinizAuth') === '1'){
 }
 </script>
 <script>
-const DIAS_UTEIS_DECORRIDOS = 7;// dias úteis já passados no mês (não conta domingo)
+const DIAS_UTEIS_DECORRIDOS = 8;// dias úteis já passados no mês (não conta domingo)
 const DIAS_UTEIS_TOTAL = 27;      // total de dias úteis do mês — atualize aqui a cada consulta
 
 // Saldo do mês já FECHADO até o dia anterior (por loja) — recalculado só na 1ª execução
 // de cada dia (consultando o BI com filtro dia 1 até ontem). Nas demais execuções do
 // mesmo dia isso permanece igual, e só o TODAY abaixo muda.
-const MONTH_BASE_DATE = "2026-10-07"; // até este dia (inclusive) o saldo abaixo já está fechado
+const MONTH_BASE_DATE = "2026-10-08"; // até este dia (inclusive) o saldo abaixo já está fechado
 const MONTH_BASE = {
-  "Loja 01": {total: 61929.30, atend: 37},
-  "Loja 02": {total: 15340.00, atend: 15},
-  "Loja 03": {total: 58626.00, atend: 30},
-  "Loja 04": {total: 42082.00, atend: 27},
-  "Loja 05": {total: 15480.00, atend: 9},
-  "Loja 06": {total: 25179.00, atend: 28},
+  "Loja 01": {total: 71072.80, atend: 46},
+  "Loja 02": {total: 22140.00, atend: 20},
+  "Loja 03": {total: 62764.00, atend: 33},
+  "Loja 04": {total: 47382.00, atend: 31},
+  "Loja 05": {total: 16170.00, atend: 10},
+  "Loja 06": {total: 27833.00, atend: 31},
   "Loja 07": {total: 28565.00, atend: 18},
 };
 
@@ -321,32 +321,32 @@ const MONTH_BASE = {
 // Atualizado 1x/dia pela automação (junto com o MONTH_BASE), consultando o BI com o
 // filtro do mês anterior. Vendas brutas (sem descontar devoluções), igual ao BI.
 const PREV_PERIOD = {
-  label: "01/09 a 08/09",
-  total: 223643.77,
-  atend: 172,
+  label: "01/09 a 09/09",
+  total: 272016.78,
+  atend: 200,
   stores: {
-    "Loja 01": 51373.00,
-    "Loja 02": 23493.00,
-    "Loja 03": 31575.00,
-    "Loja 04": 40991.76,
-    "Loja 05": 14982.00,
-    "Loja 06": 20595.00,
-    "Loja 07": 40634.01,
+    "Loja 01": 57926.00,
+    "Loja 02": 25553.01,
+    "Loja 03": 33809.00,
+    "Loja 04": 59962.76,
+    "Loja 05": 19432.00,
+    "Loja 06": 24275.00,
+    "Loja 07": 51059.01,
   },
 };
 
 // Vendas de HOJE (não confundir com o acumulado do mês) — atualizado a cada execução automática,
 // usando o filtro de data "hoje" no painel Faturômetro. Total e atendimentos por loja.
 const TODAY = {
-  total: 28725.50,
-  atend: 25,
+  total: 0.00,
+  atend: 0,
   stores: {
-    "Loja 01": {total: 9143.50, atend: 9},
-    "Loja 02": {total: 6800.00, atend: 5},
-    "Loja 03": {total: 4138.00, atend: 3},
-    "Loja 04": {total: 5300.00, atend: 4},
-    "Loja 05": {total: 690.00, atend: 1},
-    "Loja 06": {total: 2654.00, atend: 3},
+    "Loja 01": {total: 0.00, atend: 0},
+    "Loja 02": {total: 0.00, atend: 0},
+    "Loja 03": {total: 0.00, atend: 0},
+    "Loja 04": {total: 0.00, atend: 0},
+    "Loja 05": {total: 0.00, atend: 0},
+    "Loja 06": {total: 0.00, atend: 0},
     "Loja 07": {total: 0.00, atend: 0},
   },
 };
