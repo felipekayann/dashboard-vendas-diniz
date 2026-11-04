@@ -18,10 +18,64 @@ import path from 'node:path';
 
 const TZ = 'America/Sao_Paulo';
 const BI_URL = 'https://bi.dataweb.com.br/database/0/dashboard/view?id=Faturometro';
+// O link direto acima é redirecionado de volta para a lista quando a sessão
+// acabou de ser criada. Por isso entramos pela lista e clicamos em Visualizar.
+const LISTA_URL = 'https://bi.dataweb.com.br/database/0';
+const NOME_DASHBOARD = 'Faturometro'; // como aparece na lista (sem acento)
 const ARQUIVO = path.resolve('index.html');
 const LOJAS = ['Loja 01', 'Loja 02', 'Loja 03', 'Loja 04', 'Loja 05', 'Loja 06', 'Loja 07'];
 
 const log = (...a) => console.log('[dashboard]', ...a);
+
+const WORKER = 'https://dashboard-diniz-agendador.felipekayann.workers.dev';
+
+/** Le o MONTH_BASE que esta gravado no proprio index.html. */
+function lerMonthBase(html) {
+  const bloco = (html.match(/const MONTH_BASE = \{[\s\S]*?\n\};/) || [''])[0];
+  const out = {};
+  const re = /"(Loja \d{2})":\s*\{total:\s*([\d.]+),\s*atend:\s*(\d+)\}/g;
+  let m;
+  while ((m = re.exec(bloco)) !== null) {
+    out[m[1]] = { total: parseFloat(m[2]), atend: parseInt(m[3], 10) };
+  }
+  return out;
+}
+
+/** Le o PREV_PERIOD que esta gravado no proprio index.html. */
+function lerPrevPeriod(html) {
+  const bloco = (html.match(/const PREV_PERIOD = \{[\s\S]*?\n\};/) || [''])[0];
+  const stores = {};
+  const re = /"(Loja \d{2})":\s*([\d.]+)/g;
+  let m;
+  while ((m = re.exec(bloco)) !== null) stores[m[1]] = parseFloat(m[2]);
+  return {
+    label: (bloco.match(/label:\s*"([^"]*)"/) || [])[1] || '',
+    total: parseFloat((bloco.match(/total:\s*([\d.]+)/) || [])[1] || '0'),
+    atend: parseInt((bloco.match(/atend:\s*(\d+)/) || [])[1] || '0', 10),
+    stores: stores,
+  };
+}
+
+/**
+ * Espelha os numeros no cofre do Cloudflare. De proposito NAO derruba a
+ * execucao se falhar: o dashboard continua funcionando pelo proprio arquivo.
+ */
+async function enviarAoCofre(dados) {
+  if (!process.env.TOKEN_AUTOMACAO) {
+    log('TOKEN_AUTOMACAO ausente - pulando o envio ao cofre');
+    return;
+  }
+  try {
+    const r = await fetch(WORKER + '/vendas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ token: process.env.TOKEN_AUTOMACAO }, dados)),
+    });
+    log('cofre:', r.status, r.status === 200 ? 'gravado' : await r.text());
+  } catch (e) {
+    log('cofre falhou (seguindo mesmo assim):', e.message);
+  }
+}
 
 // ---------------------------------------------------------------- datas ----
 
@@ -43,26 +97,25 @@ const iso = (a, m, d) => `${a}-${String(m).padStart(2, '0')}-${String(d).padStar
 const formatoBI = (a, m, d) => `${m}/${d}/${a}`;
 const ultimoDia = (a, m) => new Date(Date.UTC(a, m, 0)).getUTCDate();
 
-/**
- * Feriados em que as lojas NÃO contam como dia útil (formato AAAA-MM-DD).
- * Só os nacionais. Para incluir feriado municipal, Carnaval, Corpus Christi etc.,
- * é só acrescentar a data aqui. Domingos já são excluídos automaticamente.
- */
-const FERIADOS = new Set([
-  // 2026
-  '2026-01-01', '2026-04-03', '2026-04-21', '2026-05-01', '2026-09-07',
+// Feriados em que as lojas nao abrem. Nao contam como dia util, entao ficam
+// fora da media por dia util e da projecao do mes.
+const FERIADOS = [
+  // 2026 - feriados nacionais
+  '2026-01-01', '2026-04-03', '2026-04-21', '2026-05-01', '2026-09-07', // Independencia
   '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25',
   // 2027
   '2027-01-01', '2027-03-26', '2027-04-21', '2027-05-01', '2027-09-07',
   '2027-10-12', '2027-11-02', '2027-11-15', '2027-11-20', '2027-12-25',
-]);
+  // Feriado municipal, Carnaval, Corpus Christi etc.: acrescentar a data aqui (AAAA-MM-DD).
+];
 
-/** Conta dias do dia 1 até `ate`, excluindo domingos e feriados (sábado conta). */
+/** Conta dias do dia 1 ate `ate`, excluindo domingos e feriados (sabado conta). */
 function diasUteis(ano, mes, ate) {
   let n = 0;
   for (let d = 1; d <= ate; d++) {
-    const dow = new Date(Date.UTC(ano, mes - 1, d)).getUTCDay();
-    if (dow !== 0 && !FERIADOS.has(iso(ano, mes, d))) n++;
+    if (new Date(Date.UTC(ano, mes - 1, d)).getUTCDay() === 0) continue;
+    if (FERIADOS.includes(iso(ano, mes, d))) continue;
+    n++;
   }
   return n;
 }
@@ -97,13 +150,37 @@ async function login(page) {
   log('login OK');
 }
 
+/**
+ * Abre o Faturômetro pela lista de dashboards (BI -> Visualizar), que é o
+ * único caminho confiável logo após o login.
+ * O seletor é estreito de propósito: a mesma linha tem um botão Excluir.
+ */
+async function abrirFaturometro(page) {
+  log('abrindo a lista de dashboards...');
+  await page.goto(LISTA_URL, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+
+  const linha = page.locator('tr', {
+    has: page.locator('td', { hasText: new RegExp('^' + NOME_DASHBOARD + '$') }),
+  }).first();
+  await linha.waitFor({ state: 'visible', timeout: 90_000 });
+
+  await linha.getByRole('button', { name: 'Visualizar', exact: true }).click();
+  await page.waitForTimeout(3_000);
+  log('Faturometro aberto: ' + page.url());
+}
+
 /** Ajusta o filtro de data do dashboard e espera os dados recarregarem. */
 async function aplicarFiltro(page, deISO, ateISO) {
   const [a1, m1, d1] = deISO.split('-').map(Number);
   const [a2, m2, d2] = ateISO.split('-').map(Number);
   log(`filtro: ${deISO} até ${ateISO}`);
 
-  await page.waitForSelector('text=Resumo faturômetro', { timeout: 90_000 });
+  try {
+    await page.waitForSelector('text=Resumo faturômetro', { timeout: 90_000 });
+  } catch (e) {
+    const trecho = await page.evaluate(() => document.body.innerText.slice(0, 600)).catch(() => '(sem texto)');
+    throw new Error('Dashboard não carregou. URL=' + page.url() + ' | Página mostra: ' + trecho);
+  }
 
   const botao = page.locator(
     '[aria-label="Dashboard Parameters"], [title="Dashboard Parameters"]'
@@ -129,16 +206,28 @@ async function aplicarFiltro(page, deISO, ateISO) {
 }
 
 /** Lê a tabela "Resumo faturômetro" e devolve {loja: {total, atend}}. */
-async function lerResumo(page) {
-  const texto = await page.evaluate(() => {
-    const alvos = [...document.querySelectorAll('div')].filter(
-      e => e.innerText && e.innerText.includes('Resumo faturômetro') && e.innerText.includes('DINIZ')
-    );
-    if (!alvos.length) return null;
-    alvos.sort((a, b) => a.innerText.length - b.innerText.length);
-    return alvos[0].innerText;
-  });
-  if (!texto) throw new Error('Tabela "Resumo faturômetro" não encontrada na página.');
+// permitirVazio = true por padrao: loja que nao vendeu no periodo simplesmente
+// nao aparece na grade do BI, e isso vale zero, nao erro. A protecao contra
+// leitura parcial da pagina e a conferencia do "Sum =" logo abaixo.
+async function lerResumo(page, permitirVazio = true) {
+  // A grade só lista lojas QUE VENDERAM. De manhã cedo ela pode vir vazia ou
+  // com parte das lojas. Detectamos que ela carregou pelo cabeçalho 'Empresa',
+  // e não pela presença de linhas DINIZ.
+  let texto = null;
+  for (let tentativa = 1; tentativa <= 4; tentativa++) {
+    texto = await page.evaluate(() => {
+      const alvos = [...document.querySelectorAll('div')].filter(
+        e => e.innerText && e.innerText.includes('Resumo faturômetro') && e.innerText.includes('Empresa')
+      );
+      if (!alvos.length) return null;
+      alvos.sort((a, b) => a.innerText.length - b.innerText.length);
+      return alvos[0].innerText;
+    });
+    if (texto && texto.includes('DINIZ')) break;
+    if (texto && permitirVazio && tentativa >= 3) break;
+    await page.waitForTimeout(8_000);
+  }
+  if (!texto) throw new Error('Tabela "Resumo faturômetro" não carregou (sem cabeçalho).');
 
   const lojas = {};
   // Formato do BI: "DINIZ- LOJA 01 4,565.00 4" (número no padrão americano)
@@ -153,7 +242,12 @@ async function lerResumo(page) {
 
   const faltando = LOJAS.filter(l => !(l in lojas));
   if (faltando.length) {
-    throw new Error(`Lojas ausentes na leitura: ${faltando.join(', ')}. Texto lido:\n${texto.slice(0, 500)}`);
+    // Sem venda no período, a loja simplesmente não aparece na grade.
+    if (!permitirVazio) {
+      throw new Error(`Lojas ausentes na leitura: ${faltando.join(', ')}. Texto lido:\n${texto.slice(0, 500)}`);
+    }
+    log(`sem venda ainda em: ${faltando.join(', ')} - lancando zero`);
+    for (const l of faltando) lojas[l] = { total: 0, atend: 0 };
   }
 
   // Confere com o "Sum =" que o próprio BI exibe, para pegar leitura parcial.
@@ -225,10 +319,11 @@ async function main() {
 
   try {
     await login(page);
+    await abrirFaturometro(page);
 
     // --- Passo 1: vendas de HOJE (toda execução) ---
     await aplicarFiltro(page, hojeISO, hojeISO);
-    const hoje = await lerResumo(page);
+    const hoje = await lerResumo(page, true);
     const totalHoje = LOJAS.reduce((s, l) => s + hoje[l].total, 0);
     const atendHoje = LOJAS.reduce((s, l) => s + hoje[l].atend, 0);
     log(`hoje: ${brl(totalHoje)} em ${atendHoje} atendimentos`);
@@ -285,11 +380,9 @@ async function main() {
     const dataFmt = `${String(t.dia).padStart(2, '0')}/${String(t.mes).padStart(2, '0')}/${t.ano}`;
     html = trocar(html, /Atualizado em \d{2}\/\d{2}\/\d{4} às \d{2}:\d{2}/,
       `Atualizado em ${dataFmt} às ${t.hora}:${t.min}`, 'carimbo de atualização');
-    // Período exibido no cabeçalho acompanha o mês corrente (não fica preso no mês anterior).
-    const ult = String(ultimoDia(t.ano, t.mes)).padStart(2, '0');
-    const mes2 = String(t.mes).padStart(2, '0');
+    // Período do cabeçalho acompanha o mês corrente (antes ficava preso no mês anterior).
     html = trocar(html, /Período: \d{2}\/\d{2}\/\d{4} a \d{2}\/\d{2}\/\d{4}/,
-      `Período: 01/${mes2}/${t.ano} a ${ult}/${mes2}/${t.ano}`, 'Período do cabeçalho');
+      `Período: 01/${String(t.mes).padStart(2, '0')}/${t.ano} a ${String(ultimoDia(t.ano, t.mes)).padStart(2, '0')}/${String(t.mes).padStart(2, '0')}/${t.ano}`, 'Período do cabeçalho');
     html = trocar(html, /const DIAS_UTEIS_DECORRIDOS = \d+;/,
       `const DIAS_UTEIS_DECORRIDOS = ${decorridos};`, 'DIAS_UTEIS_DECORRIDOS');
     html = trocar(html, /const DIAS_UTEIS_TOTAL = \d+;/,
@@ -315,6 +408,16 @@ async function main() {
     }
 
     fs.writeFileSync(ARQUIVO, html, 'utf8');
+
+    // Espelha os mesmos numeros no cofre do Cloudflare.
+    await enviarAoCofre({
+      carimbo: dataFmt + ' as ' + t.hora + ':' + t.min,
+      monthBaseDate: (html.match(/const MONTH_BASE_DATE = "([^"]*)"/) || [])[1] || '',
+      monthBase: lerMonthBase(html),
+      today: { total: totalHoje, atend: atendHoje, stores: hoje },
+      diasUteis: { decorridos: decorridos, total: totalDU },
+      prevPeriod: lerPrevPeriod(html),
+    });
     fs.writeFileSync('resumo.txt',
       `Hoje: ${brl(totalHoje)} (${atendHoje} atendimentos)\n` +
       `Mês: ${brl(acumulado)} · dia útil ${decorridos}/${totalDU}\n` +
