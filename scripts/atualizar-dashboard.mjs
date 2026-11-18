@@ -321,9 +321,22 @@ async function main() {
     await login(page);
     await abrirFaturometro(page);
 
+    // Estado padrão do BI (mês todo), lido ANTES de filtrar: serve de referência para
+    // detectar quando um filtro não pegou (o BI devolve o padrão e o painel contaria o mês em dobro).
+    await page.waitForSelector('text=Resumo faturômetro', { timeout: 90_000 });
+    const padrao = await lerResumo(page, true);
+    const iguais = (a, b) => LOJAS.every(l => a[l].total === b[l].total && a[l].atend === b[l].atend);
+    const somaT = o => LOJAS.reduce((s, l) => s + o[l].total, 0);
+
     // --- Passo 1: vendas de HOJE (toda execução) ---
-    await aplicarFiltro(page, hojeISO, hojeISO);
-    const hoje = await lerResumo(page, true);
+    let hoje = null;
+    for (let tent = 1; tent <= 3 && !hoje; tent++) {
+      await aplicarFiltro(page, hojeISO, hojeISO);
+      const lido = await lerResumo(page, true);
+      if (t.dia === 1 || somaT(padrao) === 0 || !iguais(lido, padrao)) hoje = lido;
+      else log(`filtro de hoje nao pegou (veio o mes inteiro) - tentativa ${tent}/3`);
+    }
+    if (!hoje) throw new Error('O BI não aplicou o filtro de hoje (continuou mostrando o mês inteiro). Abortei para não gravar número inflado.');
     const totalHoje = LOJAS.reduce((s, l) => s + hoje[l].total, 0);
     const atendHoje = LOJAS.reduce((s, l) => s + hoje[l].atend, 0);
     log(`hoje: ${brl(totalHoje)} em ${atendHoje} atendimentos`);
@@ -340,8 +353,15 @@ async function main() {
         log('dia 1 do mês — zerando MONTH_BASE');
         base = Object.fromEntries(LOJAS.map(l => [l, { total: 0, atend: 0 }]));
       } else {
-        await aplicarFiltro(page, iso(t.ano, t.mes, 1), ontemISO);
-        base = await lerResumo(page);
+        base = null;
+        for (let tent = 1; tent <= 3 && !base; tent++) {
+          await aplicarFiltro(page, iso(t.ano, t.mes, 1), ontemISO);
+          const lido = await lerResumo(page);
+          // Mês até ontem não pode ser igual ao padrão (mês até hoje) se hoje já vendeu algo.
+          if (somaT(hoje) === 0 || !iguais(lido, padrao)) base = lido;
+          else log(`filtro do mes ate ontem nao pegou - tentativa ${tent}/3`);
+        }
+        if (!base) throw new Error('O BI não aplicou o filtro do mês até ontem. Abortei para não gravar número inflado.');
       }
       html = trocar(html, /const MONTH_BASE_DATE = "[^"]*";/,
         `const MONTH_BASE_DATE = "${ontemISO}";`, 'MONTH_BASE_DATE');
